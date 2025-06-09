@@ -1143,84 +1143,11 @@
                   do_total();
                 });
               </script>
-
-              <script>
-                document
-                  .getElementById("pay-now-btn")
-                  .addEventListener("click", function (e) {
-                    e.preventDefault();
-
-                    // Collect form data
-                    var form = document.querySelector("form");
-                    var formData = new FormData(form);
-                    var data = {};
-                    formData.forEach((value, key) => {
-                      data[key] = value;
-                    });
-
-                    // Get total cost
-                    var total = document
-                      .getElementById("total-cost")
-                      .textContent.replace(/[^\d.]/g, "");
-                    var email = data["Email"] || ""; // Use your email field's name attribute
-
-                    if (!email) {
-                      alert("Please enter your email address.");
-                      return;
-                    }
-
-                    // Paystack payment
-                    var handler = PaystackPop.setup({
-                      key: "YOUR_PUBLIC_KEY", // Replace with your Paystack public key
-                      email: email,
-                      amount: parseFloat(total) * 100, // Paystack expects amount in kobo/pesewas
-                      currency: "GHS",
-                      callback: function (response) {
-                        formData.append(
-                          "paystack_reference",
-                          response.reference
-                        );
-                        fetch("https://formcarry.com/s/lRUmVR4doNI", {
-                          method: "POST",
-                          body: formData,
-                        })
-                          .then((res) => {
-                            if (res.ok) {
-                              alert(
-                                "Payment successful! You will receive a confirmation email."
-                              );
-                              document.getElementById("paymentForm").reset();
-                              clearOrderFormStorage();
-
-                              document.getElementById(
-                                "total-cost"
-                              ).textContent = "¢0.00";
-                              document.getElementById("amount").value = "0";
-                            } else {
-                              alert(
-                                "Payment succeeded, Your order will be ready soon."
-                              );
-                            }
-                          })
-                          .catch(() =>
-                            alert(
-                              "Payment succeeded, Your order will be ready soon."
-                            )
-                          );
-                      },
-                      onClose: function () {
-                        alert("Payment window closed.");
-                      },
-                    });
-                    handler.openIframe();
-                  });
-              </script>
             </div>
             <button
-              type="submit"
+              type="button"
               id="pay-now-btn"
               class="btn btn-danger btn-lg mt-3"
-              onclick="payWithPaystack()"
             >
               Pay Now
             </button>
@@ -1298,16 +1225,12 @@
           // Collect form data
           var form = document.getElementById("paymentForm");
           var formData = new FormData(form);
-          var data = {};
-          formData.forEach((value, key) => {
-            data[key] = value;
-          });
 
-          // Get total cost
+          // Get total cost and email
           var total = document
             .getElementById("total-cost")
             .textContent.replace(/[^\d.]/g, "");
-          var email = data["Email"] || "";
+          var email = form.querySelector('input[name="Email"]').value;
 
           if (!email) {
             alert("Please enter your email address.");
@@ -1316,23 +1239,32 @@
 
           // Paystack payment
           var handler = PaystackPop.setup({
-            key: "pk_test_daec5eba6470db795511d6c5b8b29469f938ea34", // Replace with your Paystack public key
+            key: "pk_test_daec5eba6470db795511d6c5b8b29469f938ea34",
             email: email,
             amount: parseFloat(total) * 100,
             currency: "GHS",
             callback: function (response) {
-              data["paystack_reference"] = response.reference;
+              clearOrderFormStorage(); // Clear local storage immediately
+
+              formData.append("paystack_reference", response.reference);
+
               fetch("https://formcarry.com/s/lRUmVR4doNI", {
                 method: "POST",
                 body: formData,
               })
-                .then((res) =>
-                  res.ok
-                    ? alert(
-                        "Payment successful! You will receive a confirmation email."
-                      )
-                    : alert("Payment succeeded, but failed to send email.")
-                )
+                .then((res) => {
+                  if (res.ok) {
+                    form.reset();
+                    document.getElementById("total-cost").textContent = "¢0.00";
+                    document.getElementById("amount").value = "0";
+                    setTimeout(function () {
+                      window.location.href = "index.html";
+                    }, 2000); // 2 seconds
+                  } else {
+                    alert("Payment succeeded, but failed to send email.");
+                    window.location.href = "index.html";
+                  }
+                })
                 .catch(() =>
                   alert("Payment succeeded, but failed to send email.")
                 );
