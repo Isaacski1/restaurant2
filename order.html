@@ -639,16 +639,18 @@
                   </option>
                 </optgroup>
                 <optgroup label="Regular Meat">
-                  <option value="Cow, Goat or Sheep Meat - ¢8.00">
-                    Cow, Goat or Sheep Meat - ¢8.00
+                  <option value="Cow, Goat and Sheep Meat - ¢30.00">
+                    Cow, Goat and Sheep Meat - ¢30.00
                   </option>
-                  <option value="Goat or Sheep Meat only - ¢8.00">
-                    Goat or Sheep Meat only - ¢8.00
+                  <option value="Goat and Sheep Meat only - ¢20.00">
+                    Goat or Sheep Meat only - ¢20.00
                   </option>
                   <option value="Chicken - ¢7.00">Chicken - ¢7.00</option>
-                  <option value="Cow - ¢8.00">Cow Meat only - ¢8.00</option>
-                  <option value="Sheep - ¢8.00">Sheep Meat only - ¢8.00</option>
-                  <option value="Goat - ¢8.00">Goat Meat only - ¢8.00</option>
+                  <option value="Cow - ¢10.00">Cow Meat only - ¢10.00</option>
+                  <option value="Sheep - ¢10.00">
+                    Sheep Meat only - ¢10.00
+                  </option>
+                  <option value="Goat - ¢10.00">Goat Meat only - ¢10.00</option>
                 </optgroup>
                 <optgroup label="Bush Meat">
                   <option value="Akrantie or Kusie - ¢17.00">
@@ -737,6 +739,10 @@
                   Salad w/ Cream - ¢6.00
                 </option>
                 <option value="Salad only - ¢2.00">Salad only - ¢2.00</option>
+                <option value="Gari only - ¢2.00">Gari only - ¢2.00</option>
+                <option value="Noodles only - ¢5.00">
+                  Noodles only - ¢5.00
+                </option>
                 <option value="other">Other (Specify in notes)</option>
               </select>
               <div
@@ -1183,22 +1189,22 @@
                               alert(
                                 "Payment successful! You will receive a confirmation email."
                               );
-                              document.getElementById("paymentForm").reset(); // Reset the form fields
-                              clearOrderFormStorage(); // Clear local storage
-                              // Optionally, reset the total cost display
+                              document.getElementById("paymentForm").reset();
+                              clearOrderFormStorage();
+
                               document.getElementById(
                                 "total-cost"
                               ).textContent = "¢0.00";
                               document.getElementById("amount").value = "0";
                             } else {
                               alert(
-                                "Payment succeeded, but failed to send email."
+                                "Payment succeeded, Your order will be ready soon."
                               );
                             }
                           })
                           .catch(() =>
                             alert(
-                              "Payment succeeded, but failed to send email."
+                              "Payment succeeded, Your order will be ready soon."
                             )
                           );
                       },
