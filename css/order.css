@@ -214,7 +214,7 @@
 }
 
 /* Style the optgroup label */
-#req-Protein2 optgroup {
+optgroup {
   color: #cf2227;
   font-weight: bold;
   font-size: 1rem;
@@ -222,7 +222,7 @@
 }
 
 /* Style the options */
-#req-Protein2 option {
+option {
   color: #222;
   background: #fff;
   font-size: 1rem;
@@ -318,10 +318,7 @@
 }
 
 /* Style the optgroup label for all selects */
-#main_dishes optgroup,
-#protein optgroup,
-#req-Protein2 optgroup,
-#req-Drinks optgroup {
+optgroup {
   color: #cf2227;
   font-weight: bold;
   font-size: 1rem;
@@ -444,11 +441,7 @@
 }
 
 /* Make optgroup labels stand out even more */
-#main_dishes optgroup,
-#protein optgroup,
-#req-Protein2 optgroup,
-#req-Drinks optgroup,
-#req-Packaging optgroup {
+optgroup {
   color: #cf2227;
   font-weight: bold;
   font-size: 1.05rem;
