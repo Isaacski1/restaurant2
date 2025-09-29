@@ -1598,3 +1598,19 @@ body {
 .whatsapp-chat:hover i {
   color: #fff;
 }
+
+/* Email.js SDK */
+.booking-notification {
+    animation: slideIn 0.3s ease;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

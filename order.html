@@ -1,23 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Mirrored from preview.colorlib.com/theme/pato/about.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 06 Jun 2025 18:45:46 GMT -->
 
 <head>
-  <script>
-    (function (w, i, g) {
-      w[g] = w[g] || [];
-      if (typeof w[g].push == "function") w[g].push(i);
-    })(window, "G-SEKJ4E9T4H", "google_tags_first_party");
+  <!-- Email.js SDK -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
   </script>
-  <script async src="https://preview.colorlib.com/s9cc/"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() {
-      dataLayer.push(arguments);
-    }
-    gtag("js", new Date());
-    gtag("set", "developer_id.dYzg1YT", true);
-    gtag("config", "G-SEKJ4E9T4H");
+  <script type="text/javascript">
+    (function () {
+      emailjs.init({
+        publicKey: "-WX6aDIktn3nAw81E",
+      });
+    })();
   </script>
 
   <title>Order Food | Isaacski Restaurant</title>
@@ -222,6 +215,7 @@
   <section class="container-fluid food-selection">
     <div class="container food-selection-row mx-auto">
       <form id="paymentForm" class="row orderForm">
+        <!-- Your existing form fields remain the same -->
         <div class="food-selection-col col-lg-4 col-md-12 pb-5 border">
           <h1 class="food-selection-col-title">Fill Your Details</h1>
 
@@ -308,7 +302,7 @@
                 <option value="Jollof - ¢20.00">Jollof - ¢20.00</option>
               </optgroup>
               <optgroup label="Fried Rice">
-                <option value="Fried Rice - ¢25.00">Jollof - ¢25.00</option>
+                <option value="Fried Rice - ¢25.00">Fried Rice - ¢25.00</option>
               </optgroup>
               <optgroup label="Plain Rice">
                 <option value="Plain Rice with Kontonmire Stew - ¢15.00">
@@ -389,7 +383,6 @@
             </select>
           </div>
 
-          <!-- ...existing code... -->
           <div class="input-boxs my-4">
             <label for="Protein2">Extra Protein</label>
             <select name="protein2" id="protein2" class="input-fill" required>
@@ -518,98 +511,14 @@
             </select>
           </div>
 
-          <!-- Place this div just before the closing </section> tag of your food-selection section -->
+          <!-- Total Cost Section -->
           <div class="input-boxs my-4" id="total-cost-box" style="text-align: center">
             <h3>
               Total Cost:
               <span id="total-cost" style="color: #cf2227">¢0.00</span>
             </h3>
-
-            <script>
-              // Total Cost
-              // Utility to extract price from value string (e.g., "Fufu with/ Light Soup - ¢6.00")
-              function extractPrice(val) {
-                if (!val) return 0;
-                var match = val.match(/¢([\d.]+)/);
-                return match ? parseFloat(match[1]) : 0;
-              }
-
-              function do_total() {
-                var total = 0;
-
-                // Main Dish
-                var main = document.getElementById("main_dishes");
-                if (main && main.value) total += extractPrice(main.value);
-
-                // Protein
-                var protein = document.getElementById("protein");
-                if (protein && protein.value)
-                  total += extractPrice(protein.value);
-
-                // Extra Protein
-                var protein2 = document.getElementById("Protein2");
-                if (protein2 && protein2.value)
-                  total += extractPrice(protein2.value);
-
-                // Accompaniment
-                var acc = document.getElementById("Accompaniment");
-                if (acc && acc.value) total += extractPrice(acc.value);
-
-                // Drinks
-                var drink = document.getElementById("Drinks");
-                if (drink && drink.value) total += extractPrice(drink.value);
-
-                // Packaging
-                var packaging = document.getElementById("Packaging");
-                if (packaging && packaging.value)
-                  total += extractPrice(packaging.value);
-
-                // Delivery
-                var delivery = document.getElementById("Delivery");
-                if (delivery && delivery.value)
-                  total += extractPrice(delivery.value);
-
-                // Show total
-                document.getElementById("total-cost").textContent =
-                  "¢" + total.toFixed(2);
-                document.getElementById("amount").value = total.toFixed(2);
-              }
-
-              // Attach do_total to all relevant selects
-              document.addEventListener("DOMContentLoaded", function () {
-                [
-                  "main_dishes",
-                  "protein",
-                  "Protein2",
-                  "Accompaniment",
-                  "Drinks",
-                  "Packaging",
-                  "Delivery",
-                ].forEach(function (id) {
-                  var el = document.getElementById(id);
-                  if (el) el.addEventListener("change", do_total);
-                });
-
-                // Also update total if user adds a custom option via Enter key
-                var observer = new MutationObserver(do_total);
-                [
-                  "main_dishes",
-                  "protein",
-                  "Protein2",
-                  "Accompaniment",
-                  "Drinks",
-                  "Packaging",
-                  "Delivery",
-                ].forEach(function (id) {
-                  var el = document.getElementById(id);
-                  if (el) observer.observe(el, { childList: true });
-                });
-
-                // Initial calculation
-                do_total();
-              });
-            </script>
           </div>
+
           <button type="button" id="pay-now-btn" class="btn btn-danger btn-lg mt-3">
             Pay Now
           </button>
@@ -619,103 +528,222 @@
     </div>
   </section>
   <!-- Food Selection Categories End -->
+
   <!-- Chat Us On Whatsapp -->
   <a href="https://api.whatsapp.com/send?phone=233549175604&text=Hello%20Isaacski%20Restaurant" class="whatsapp-chat"
     target="_blank" rel="noopener noreferrer">
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
-  <!--===============================================================================================-->
+
+  <!-- Add these scripts before your custom JavaScript -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+  <script src="https://js.paystack.co/v1/inline.js"></script>
 
   <script>
-    document
-      .getElementById("pay-now-btn")
-      .addEventListener("click", function () {
-        const form = document.getElementById("paymentForm");
-        const formData = new FormData(form);
-        const data = {};
-        formData.forEach((value, key) => {
-          data[key] = value;
-        });
+    // Initialize EmailJS
+    (function () {
+      emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Replace with your EmailJS public key
+    })();
 
-        // Basic validation
-        if (!data.fullname || !data.email || !data.telephone) {
-          alert("Please fill in Full Name, Email, and Telephone.");
-          return;
-        }
+    // Total Cost Calculation (Keep your existing code)
+    function extractPrice(val) {
+      if (!val) return 0;
+      var match = val.match(/¢([\d.]+)/);
+      return match ? parseFloat(match[1]) : 0;
+    }
 
-        // Get total
-        const totalText = document.getElementById("total-cost").textContent;
-        const total = totalText.replace(/[^\d.]/g, "");
-        if (!total || isNaN(parseFloat(total)) || parseFloat(total) <= 0) {
-          alert("Please select your meal to calculate total cost.");
-          return;
-        }
+    function do_total() {
+      var total = 0;
 
-        if (typeof PaystackPop === "undefined") {
-          alert("Paystack is not loaded. Check your internet connection.");
-          return;
-        }
+      // Main Dish
+      var main = document.getElementById("main_dishes");
+      if (main && main.value) total += extractPrice(main.value);
 
-        const handler = PaystackPop.setup({
-          key: "pk_test_daec5eba6470db795511d6c5b8b29469f938ea34",
-          email: data.email,
-          amount: parseFloat(total) * 100,
-          currency: "GHS",
-          callback: function (response) {
-            handlePaymentSuccess(response, formData, data, form);
-          },
-          onClose: function () {
-            alert("Payment was cancelled.");
-          },
-        });
+      // Protein
+      var protein = document.getElementById("protein");
+      if (protein && protein.value)
+        total += extractPrice(protein.value);
 
-        handler.openIframe();
+      // Extra Protein
+      var protein2 = document.getElementById("protein2");
+      if (protein2 && protein2.value)
+        total += extractPrice(protein2.value);
+
+      // Accompaniment
+      var acc = document.getElementById("Accompaniment");
+      if (acc && acc.value) total += extractPrice(acc.value);
+
+      // Drinks
+      var drink = document.getElementById("Drinks");
+      if (drink && drink.value) total += extractPrice(drink.value);
+
+      // Packaging
+      var packaging = document.getElementById("Packaging");
+      if (packaging && packaging.value)
+        total += extractPrice(packaging.value);
+
+      // Delivery
+      var delivery = document.getElementById("Delivery");
+      if (delivery && delivery.value)
+        total += extractPrice(delivery.value);
+
+      // Show total
+      document.getElementById("total-cost").textContent =
+        "¢" + total.toFixed(2);
+      document.getElementById("amount").value = total.toFixed(2);
+    }
+
+    // Attach do_total to all relevant selects
+    document.addEventListener("DOMContentLoaded", function () {
+      [
+        "main_dishes",
+        "protein",
+        "protein2",
+        "Accompaniment",
+        "Drinks",
+        "Packaging",
+        "Delivery",
+      ].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.addEventListener("change", do_total);
       });
 
-    async function handlePaymentSuccess(response, formData, data, form) {
-      formData.append("paystack_reference", response.reference);
+      // Initial calculation
+      do_total();
+    });
 
-      try {
-        // 1. Send to Formcarry
-        const formcarryRes = await fetch(
-          "https://formcarry.com/s/lRUmVR4doNI",
-          {
-            method: "POST",
-            body: formData,
-            headers: {
-              Accept: "application/json",
+    // Paystack Payment with Email.js Integration
+    document.getElementById("pay-now-btn").addEventListener("click", function () {
+      const form = document.getElementById("paymentForm");
+      const formData = new FormData(form);
+      const data = {};
+      formData.forEach((value, key) => {
+        data[key] = value;
+      });
+
+      // Basic validation
+      if (!data.fullname || !data.email || !data.telephone) {
+        alert("Please fill in Full Name, Email, and Telephone.");
+        return;
+      }
+
+      // Get total
+      const totalText = document.getElementById("total-cost").textContent;
+      const total = totalText.replace(/[^\d.]/g, "");
+      if (!total || isNaN(parseFloat(total)) || parseFloat(total) <= 0) {
+        alert("Please select your meal to calculate total cost.");
+        return;
+      }
+
+      if (typeof PaystackPop === "undefined") {
+        alert("Paystack is not loaded. Check your internet connection.");
+        return;
+      }
+
+      // Generate order ID
+      const orderId = 'ORDER-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+      const handler = PaystackPop.setup({
+        key: "pk_test_daec5eba6470db795511d6c5b8b29469f938ea34",
+        email: data.email,
+        amount: parseFloat(total) * 100,
+        currency: "GHS",
+        ref: orderId, // Use order ID as reference
+        metadata: {
+          custom_fields: [
+            {
+              display_name: "Full Name",
+              variable_name: "full_name",
+              value: data.fullname
             },
-          }
-        );
+            {
+              display_name: "Telephone",
+              variable_name: "telephone",
+              value: data.telephone
+            },
+            {
+              display_name: "Order ID",
+              variable_name: "order_id",
+              value: orderId
+            }
+          ]
+        },
+        callback: function (response) {
+          handlePaymentSuccess(response, data, orderId);
+        },
+        onClose: function () {
+          alert("Payment was cancelled.");
+        },
+      });
 
-        if (!formcarryRes.ok) throw new Error("Formcarry submission failed");
+      handler.openIframe();
+    });
+
+    async function handlePaymentSuccess(response, data, orderId) {
+      try {
+        // 1. Send email using Email.js
+        const templateParams = {
+          // Customer Information
+          fullname: data.fullname,
+          email: data.email,
+          telephone: data.telephone,
+          vendor_location: data.vendor_location,
+          message: data.message,
+
+          // Food Selection
+          main_dishes: data.main_dishes,
+          protein: data.protein,
+          protein2: data.protein2,
+          accompaniment: data.Accompaniment,
+          drinks: data.Drinks,
+          packaging: data.Packaging,
+          delivery: data.Delivery,
+
+          // Order & Payment Details
+          total_cost: document.getElementById('total-cost').textContent,
+          order_id: orderId,
+          payment_reference: response.reference,
+          timestamp: new Date().toLocaleString()
+        };
+
+        // Send email via Email.js
+        await emailjs.send('service_uvwuw6g', 'template_phvfhln', templateParams);
+        console.log('Email sent successfully via Email.js');
 
         // 2. Format WhatsApp message
-        const whatsappMessage = `New Order:
-    Full Name: ${data.fullname}
-    Email: ${data.email}
-    Phone: ${data.telephone}
-    Vendor Location: ${data.vendor_location}
-    Message: ${data.message}
-    Main Dish: ${data.main_dishes}
-    Protein: ${data.protein}
-    Extra Protein: ${data.Protein2}
-    Accompaniment: ${data.Accompaniment}
-    Drinks: ${data.Drinks}
-    Packaging: ${data.Packaging}
-    Delivery: ${data.Delivery}
-    Payment Ref: ${response.reference}`;
+        const whatsappMessage = `New Order Payment Successful! 💰
+  Order ID: ${orderId}
+  Payment Ref: ${response.reference}
+  
+  Customer Details:
+  👤 Full Name: ${data.fullname}
+  📧 Email: ${data.email}
+  📞 Phone: ${data.telephone}
+  📍 Vendor Location: ${data.vendor_location}
+  
+  Order Details:
+  🍛 Main Dish: ${data.main_dishes}
+  🥩 Protein: ${data.protein}
+  🥩 Extra Protein: ${data.protein2}
+  🥗 Accompaniment: ${data.Accompaniment}
+  🥤 Drinks: ${data.Drinks}
+  📦 Packaging: ${data.Packaging}
+  🚚 Delivery: ${data.Delivery}
+  
+  💰 Total: ${document.getElementById('total-cost').textContent}
+  
+  📝 Additional Notes: ${data.message || 'None'}`;
 
-        const whatsappLink = `https://wa.me/233549175604?text=${encodeURIComponent(
-          whatsappMessage
-        )}`;
+        const whatsappLink = `https://wa.me/233549175604?text=${encodeURIComponent(whatsappMessage)}`;
         window.open(whatsappLink, "_blank");
 
-        alert("Order submitted successfully and payment completed!");
-        form.reset();
+        alert("🎉 Order submitted successfully and payment completed! Order ID: " + orderId);
+        document.getElementById('paymentForm').reset();
+        document.getElementById('total-cost').textContent = '¢0.00';
+
       } catch (error) {
-        console.error("Error during form or WhatsApp submission:", error);
-        alert("Something went wrong while submitting your order.");
+        console.error("Error during email or WhatsApp submission:", error);
+        alert("Payment was successful but there was an issue sending the order notification. Please contact us with your Order ID: " + orderId);
       }
     }
   </script>
@@ -750,6 +778,7 @@
   <script src="js/payment.js"></script>
   <script src="js/whatsaap-api.js"></script>
   <script src="js/script.js"></script>
+  <script src="js/email-template.js"></script>
   <!-- Paystack -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
 
