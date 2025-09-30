@@ -1,131 +1,84 @@
-// Initialize EmailJS with your public key
-(function() {
-    emailjs.init("-WX6aDIktn3nAw81E"); // Replace with your actual public key
-})();
-
-// Form submission handler
-document.addEventListener('DOMContentLoaded', function() {
-    const bookingForm = document.querySelector('.wrap-form-booking');
-    
-    bookingForm.addEventListener('submit', function(event) {
-        event.preventDefault();
-        
-        // Generate random reservation ID
-        const reservationId = generateReservationId();
-        
-        // Get form data
-        const formData = {
-            date: document.querySelector('input[name="date"]').value,
-            time: document.querySelector('input[name="Time"]').value,
-            people: document.querySelector('select[name="people"]').value,
-            name: document.querySelector('input[name="name"]').value,
-            phone: document.querySelector('input[name="phone"]').value,
-            email: document.querySelector('input[name="email"]').value,
-            reservation_id: reservationId // Add the generated ID
-        };
-        
-        console.log('Form Data with Reservation ID:', formData);
-        sendReservationEmail(formData);
-    });
-});
-
-// Function to generate random reservation ID
-function generateReservationId() {
-    const timestamp = Date.now().toString().slice(-6); // Last 6 digits of timestamp
-    const randomChars = Math.random().toString(36).substr(2, 4).toUpperCase(); // Random 4 characters
-    return `RES${timestamp}${randomChars}`;
-}
-
-// Alternative simpler reservation ID generator (choose one)
-function generateSimpleReservationId() {
-    const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    const numbers = '0123456789';
-    let id = 'RES';
-    
-    // Add 3 random letters
-    for (let i = 0; i < 3; i++) {
-        id += letters.charAt(Math.floor(Math.random() * letters.length));
-    }
-    
-    // Add 3 random numbers
-    for (let i = 0; i < 3; i++) {
-        id += numbers.charAt(Math.floor(Math.random() * numbers.length));
-    }
-    
-    return id;
-}
-
-// Function to send reservation email
-function sendReservationEmail(formData) {
-    const button = document.querySelector('.wrap-btn-booking button');
-    const originalText = button.textContent;
-    
-    // Show loading state
-    button.textContent = 'Booking...';
-    button.disabled = true;
-    
-    // Prepare template parameters
-    const templateParams = {
-        date: formData.date,
-        time: formData.time,
-        people: formData.people,
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        timestamp: new Date().toLocaleString(),
-        reservation_id: formData.reservation_id // Make sure this matches your template variable
-    };
-    
-    console.log('Sending to EmailJS:', templateParams);
-    
-    // Send email using EmailJS
-    emailjs.send('service_ge0xowv', 'template_7xa0yxb', templateParams)
-        .then(function(response) {
-            console.log('SUCCESS!', response.status, response.text);
-            alert('🎉 Reservation submitted successfully! Your Reservation ID: ' + formData.reservation_id);
-            document.querySelector('.wrap-form-booking').reset();
-        })
-        .catch(function(error) {
-            console.error('FAILED...', error);
-            alert('❌ Failed to submit reservation. Please try again or call us directly.');
-        })
-        .finally(function() {
-            // Reset button
-            button.textContent = originalText;
-            button.disabled = false;
-        });
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // Initialize EmailJS with YOUR actual keys
 (function() {
     emailjs.init("-WX6aDIktn3nAw81E");
     console.log("EmailJS initialized");
 })();
 
-// Paystack Payment with Email.js Integration - FIXED VERSION
+// ==================== RESERVATION FORM HANDLER ====================
+document.addEventListener('DOMContentLoaded', function() {
+    const reservationForm = document.querySelector('.wrap-form-booking');
+    
+    if (reservationForm) {
+        reservationForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            
+            // Generate reservation ID
+            const reservationId = 'RES-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+            
+            // Get form data
+            const formData = {
+                date: document.querySelector('input[name="date"]').value,
+                time: document.querySelector('input[name="Time"]').value,
+                people: document.querySelector('select[name="people"]').value,
+                name: document.querySelector('input[name="name"]').value,
+                phone: document.querySelector('input[name="phone"]').value,
+                email: document.querySelector('input[name="email"]').value,
+                reservation_id: reservationId
+            };
+            
+            console.log('Reservation Form Data:', formData);
+            sendReservationEmail(formData);
+        });
+    }
+});
+
+// Function to send reservation email
+function sendReservationEmail(formData) {
+    const button = document.querySelector('.wrap-form-booking button[type="submit"]');
+    const originalText = button?.textContent || 'Book Table';
+    
+    // Show loading state
+    if (button) {
+        button.textContent = 'Booking...';
+        button.disabled = true;
+    }
+    
+    // Prepare template parameters
+    const templateParams = {
+        date: formData.date || 'Not provided',
+        time: formData.time || 'Not provided',
+        people: formData.people || 'Not provided',
+        name: formData.name || 'Not provided',
+        phone: formData.phone || 'Not provided',
+        email: formData.email || 'Not provided',
+        timestamp: new Date().toLocaleString(),
+        reservation_id: formData.reservation_id
+    };
+    
+    console.log('Sending Reservation Email:', templateParams);
+    
+    // Send email using EmailJS
+    emailjs.send('service_uvwuw6g', 'template_7xa0yxb', templateParams)
+        .then(function(response) {
+            console.log('RESERVATION SUCCESS!', response);
+            alert('🎉 Reservation submitted successfully! We will confirm shortly.');
+            document.querySelector('.wrap-form-booking').reset();
+        })
+        .catch(function(error) {
+            console.error('RESERVATION FAILED...', error);
+            alert('❌ Failed to submit reservation. Please try again or call us directly.');
+        })
+        .finally(function() {
+            // Reset button
+            if (button) {
+                button.textContent = originalText;
+                button.disabled = false;
+            }
+        });
+}
+
+// ==================== FOOD ORDER FORM HANDLER ====================
 document.getElementById("pay-now-btn").addEventListener("click", function() {
     const payButton = document.getElementById("pay-now-btn");
     const originalText = payButton.textContent;
@@ -285,7 +238,7 @@ async function handlePaymentSuccess(response, data, orderId, payButton, original
         console.log("✅ Email.js SUCCESS! Status:", emailResult.status);
         console.log("✅ Email sent successfully!");
 
-        // 3. Format WhatsApp message
+        // 3. Format and send WhatsApp message - GUARANTEED TO WORK
         const whatsappMessage = `New Order Payment Successful! 💰
 Order ID: ${orderId}
 Payment Ref: ${response.reference}
@@ -310,9 +263,34 @@ Order Details:
 📝 Additional Notes: ${data.message || 'None'}`;
 
         const whatsappLink = `https://wa.me/233549175604?text=${encodeURIComponent(whatsappMessage)}`;
-        window.open(whatsappLink, "_blank");
 
-        alert("🎉 Order submitted successfully and payment completed! Order ID: " + orderId);
+        // ALWAYS SHOW WHATSAPP BUTTON - GUARANTEED SOLUTION
+        const whatsappButton = document.createElement('div');
+        whatsappButton.innerHTML = `
+            <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 25px; border: 3px solid #25D366; border-radius: 15px; z-index: 10000; box-shadow: 0 10px 30px rgba(0,0,0,0.4); text-align: center; max-width: 90%; width: 400px;">
+                <div style="font-size: 24px; margin-bottom: 10px;">📱</div>
+                <h3 style="color: #25D366; margin-bottom: 15px; font-size: 20px;">Send Order to WhatsApp</h3>
+                <p style="margin-bottom: 20px; color: #666; line-height: 1.5;">Click the button below to send this order to WhatsApp automatically:</p>
+                <a href="${whatsappLink}" target="_blank" style="background: #25D366; color: white; padding: 15px 30px; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 16px; display: inline-block; margin-bottom: 15px; width: 80%;">
+                    📲 Open WhatsApp with Order
+                </a>
+                <br>
+                <button onclick="this.parentElement.parentElement.remove()" style="background: #DC2626; color: white; padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 14px;">
+                    Close
+                </button>
+            </div>
+            <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999;"></div>
+        `;
+        document.body.appendChild(whatsappButton);
+
+        // Auto-remove after 60 seconds
+        setTimeout(() => {
+            if (document.body.contains(whatsappButton)) {
+                document.body.removeChild(whatsappButton);
+            }
+        }, 60000);
+
+        alert("🎉 Order submitted successfully and payment completed! Order ID: " + orderId + "\n\nA WhatsApp button has appeared - click it to send the order details.");
         document.getElementById('paymentForm').reset();
         document.getElementById('total-cost').textContent = '¢0.00';
 
