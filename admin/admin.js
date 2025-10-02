@@ -1,19 +1,57 @@
 // admin/admin.js
 
-// Check authentication
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        // User is signed in
-        console.log("Admin user:", user.email);
-        initializeDashboard();
-    } else {
-        // No user signed in, redirect to login
-        console.log("No user signed in, redirecting to login...");
-        setTimeout(() => {
-            window.location.href = 'login.html';
-        }, 1000);
+// Global variables
+let auth, db;
+
+// Initialize Firebase if not already initialized
+function initializeFirebase() {
+    try {
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvpv148pehFCPMwuw1hDYPPnWA67EOHOU",
+            authDomain: "isaacski-restaurant.firebaseapp.com",
+            projectId: "isaacski-restaurant",
+            storageBucket: "isaacski-restaurant.firebasestorage.app",
+            messagingSenderId: "793597481997",
+            appId: "1:793597481997:web:fce9cb43ca442eee7b7144",
+            measurementId: "G-CNYCFT8N3F"
+        };
+
+        // Check if Firebase is already initialized
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        auth = firebase.auth();
+        db = firebase.firestore();
+        
+        console.log("Firebase initialized successfully");
+        
+    } catch (error) {
+        console.error("Firebase initialization error:", error);
     }
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeFirebase();
+    setupAuthListener();
 });
+
+// Check authentication
+function setupAuthListener() {
+    auth.onAuthStateChanged((user) => {
+        console.log("Auth state changed - User:", user);
+        if (user) {
+            // User is signed in
+            console.log("Admin user:", user.email);
+            initializeDashboard();
+        } else {
+            // No user signed in, redirect to login
+            console.log("No user signed in, redirecting to login...");
+            window.location.href = 'login.html';
+        }
+    });
+}
 
 function initializeDashboard() {
     try {
@@ -71,13 +109,14 @@ function loadDashboardData() {
     loadRecentOrders();
     loadAllOrders();
     loadAllReservations();
-    setupCharts();
 }
 
 // Load today's orders
 function loadTodayOrders() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    
+    console.log("Loading today's orders...");
     
     db.collection('orders')
         .where('timestamp', '>=', today)
@@ -88,11 +127,14 @@ function loadTodayOrders() {
             
             snapshot.forEach(doc => {
                 totalOrders++;
-                totalRevenue += doc.data().totalAmount || 0;
-                if (doc.data().orderStatus === 'pending') {
+                const orderData = doc.data();
+                totalRevenue += orderData.total || orderData.totalAmount || 0;
+                if (orderData.status === 'pending' || orderData.orderStatus === 'pending') {
                     pendingOrders++;
                 }
             });
+            
+            console.log(`Today's stats - Orders: ${totalOrders}, Revenue: ${totalRevenue}, Pending: ${pendingOrders}`);
             
             document.getElementById('todayOrders').textContent = totalOrders;
             document.getElementById('todayRevenue').textContent = '¢' + totalRevenue.toFixed(2);
@@ -106,9 +148,12 @@ function loadTodayOrders() {
 function loadTodayReservations() {
     const today = new Date().toISOString().split('T')[0];
     
+    console.log("Loading today's reservations for date:", today);
+    
     db.collection('reservations')
-        .where('reservationDate', '==', today)
+        .where('date', '==', today)
         .onSnapshot((snapshot) => {
+            console.log(`Today's reservations: ${snapshot.size}`);
             document.getElementById('todayReservations').textContent = snapshot.size;
         }, (error) => {
             console.error('Error loading today reservations:', error);
@@ -117,24 +162,34 @@ function loadTodayReservations() {
 
 // Load recent orders for dashboard
 function loadRecentOrders() {
+    console.log("Loading recent orders...");
+    
     db.collection('orders')
         .orderBy('timestamp', 'desc')
         .limit(5)
         .onSnapshot((snapshot) => {
             const tableBody = document.querySelector('#recentOrdersTable tbody');
-            if (!tableBody) return;
+            if (!tableBody) {
+                console.log("Recent orders table not found");
+                return;
+            }
             
             tableBody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="6" class="text-center">No orders found</td></tr>';
+                return;
+            }
             
             snapshot.forEach(doc => {
                 const order = doc.data();
                 const row = `
                     <tr>
-                        <td>${order.orderId}</td>
-                        <td>${order.customerName}</td>
+                        <td>${doc.id.substring(0, 8)}</td>
+                        <td>${order.customerName || 'N/A'}</td>
                         <td>${getOrderItemsCount(order)} items</td>
-                        <td>¢${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'}</td>
-                        <td><span class="badge bg-${getStatusBadge(order.orderStatus)}">${order.orderStatus || 'pending'}</span></td>
+                        <td>¢${(order.total || order.totalAmount || 0).toFixed(2)}</td>
+                        <td><span class="badge bg-${getStatusBadge(order.status || order.orderStatus)}">${order.status || order.orderStatus || 'pending'}</span></td>
                         <td>${formatDate(order.timestamp)}</td>
                     </tr>
                 `;
@@ -147,40 +202,47 @@ function loadRecentOrders() {
 
 // Load all orders for orders section
 function loadAllOrders() {
+    console.log("Loading all orders...");
+    
     db.collection('orders')
         .orderBy('timestamp', 'desc')
         .onSnapshot((snapshot) => {
             const tableBody = document.querySelector('#ordersTable tbody');
-            if (!tableBody) return;
+            if (!tableBody) {
+                console.log("Orders table not found");
+                return;
+            }
             
             tableBody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+                return;
+            }
             
             snapshot.forEach(doc => {
                 const order = doc.data();
                 const row = `
                     <tr>
-                        <td>${order.orderId}</td>
+                        <td>${doc.id.substring(0, 8)}</td>
                         <td>
-                            <strong>${order.customerName}</strong><br>
-                            <small class="text-muted">${order.vendorLocation || 'N/A'}</small>
+                            <strong>${order.customerName || 'N/A'}</strong>
                         </td>
                         <td>
-                            ${order.customerEmail}<br>
-                            ${order.customerPhone}
+                            ${order.customerEmail || 'N/A'}<br>
+                            ${order.customerPhone || 'N/A'}
                         </td>
                         <td>
-                            <strong>Main:</strong> ${order.mainDish?.split(' - ')[0] || 'N/A'}<br>
-                            <strong>Protein:</strong> ${order.protein?.split(' - ')[0] || 'N/A'}<br>
-                            <small class="text-muted">+${getOrderExtras(order)}</small>
+                            ${getOrderItemsSummary(order)}
                         </td>
-                        <td>¢${order.totalAmount ? order.totalAmount.toFixed(2) : '0.00'}</td>
+                        <td>¢${(order.total || order.totalAmount || 0).toFixed(2)}</td>
                         <td>
-                            <select class="form-select form-select-sm status-select" data-order-id="${order.orderId}" data-type="order">
-                                <option value="pending" ${order.orderStatus === 'pending' ? 'selected' : ''}>Pending</option>
-                                <option value="preparing" ${order.orderStatus === 'preparing' ? 'selected' : ''}>Preparing</option>
-                                <option value="ready" ${order.orderStatus === 'ready' ? 'selected' : ''}>Ready</option>
-                                <option value="completed" ${order.orderStatus === 'completed' ? 'selected' : ''}>Completed</option>
-                                <option value="cancelled" ${order.orderStatus === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                            <select class="form-select form-select-sm status-select" data-order-id="${doc.id}">
+                                <option value="pending" ${(order.status || order.orderStatus) === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="preparing" ${(order.status || order.orderStatus) === 'preparing' ? 'selected' : ''}>Preparing</option>
+                                <option value="ready" ${(order.status || order.orderStatus) === 'ready' ? 'selected' : ''}>Ready</option>
+                                <option value="completed" ${(order.status || order.orderStatus) === 'completed' ? 'selected' : ''}>Completed</option>
+                                <option value="cancelled" ${(order.status || order.orderStatus) === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                             </select>
                         </td>
                         <td>${formatDate(order.timestamp)}</td>
@@ -196,13 +258,9 @@ function loadAllOrders() {
 
             // Add event listeners for status changes
             document.querySelectorAll('.status-select').forEach(select => {
-                select.addEventListener('change', handleStatusChange);
+                select.addEventListener('change', handleOrderStatusChange);
             });
 
-            // Add event listeners for view buttons
-            document.querySelectorAll('.view-order').forEach(btn => {
-                btn.addEventListener('click', viewOrderDetails);
-            });
         }, (error) => {
             console.error('Error loading all orders:', error);
         });
@@ -210,33 +268,43 @@ function loadAllOrders() {
 
 // Load all reservations
 function loadAllReservations() {
+    console.log("Loading all reservations...");
+    
     db.collection('reservations')
-        .orderBy('reservationDateTime', 'desc')
+        .orderBy('timestamp', 'desc')
         .onSnapshot((snapshot) => {
             const tableBody = document.querySelector('#reservationsTable tbody');
-            if (!tableBody) return;
+            if (!tableBody) {
+                console.log("Reservations table not found");
+                return;
+            }
             
             tableBody.innerHTML = '';
+            
+            if (snapshot.empty) {
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No reservations found</td></tr>';
+                return;
+            }
             
             snapshot.forEach(doc => {
                 const reservation = doc.data();
                 const row = `
                     <tr>
-                        <td>${reservation.reservationId}</td>
+                        <td>${doc.id.substring(0, 8)}</td>
                         <td>
-                            <strong>${reservation.customerName}</strong>
+                            <strong>${reservation.name || 'N/A'}</strong>
                         </td>
                         <td>
-                            ${reservation.customerEmail}<br>
-                            ${reservation.customerPhone}
+                            ${reservation.email || 'N/A'}<br>
+                            ${reservation.phone || 'N/A'}
                         </td>
                         <td>
-                            ${formatDate(reservation.reservationDate)}<br>
-                            <small class="text-muted">${reservation.reservationTime}</small>
+                            ${reservation.date || 'N/A'}<br>
+                            <small class="text-muted">${reservation.time || 'N/A'}</small>
                         </td>
-                        <td>${reservation.numberOfPeople} people</td>
+                        <td>${reservation.guests || 'N/A'} people</td>
                         <td>
-                            <select class="form-select form-select-sm status-select" data-reservation-id="${reservation.reservationId}" data-type="reservation">
+                            <select class="form-select form-select-sm status-select" data-reservation-id="${doc.id}">
                                 <option value="confirmed" ${reservation.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
                                 <option value="seated" ${reservation.status === 'seated' ? 'selected' : ''}>Seated</option>
                                 <option value="completed" ${reservation.status === 'completed' ? 'selected' : ''}>Completed</option>
@@ -256,111 +324,46 @@ function loadAllReservations() {
             });
 
             // Add event listeners for status changes
-            document.querySelectorAll('.status-select[data-type="reservation"]').forEach(select => {
-                select.addEventListener('change', handleStatusChange);
+            document.querySelectorAll('.status-select[data-reservation-id]').forEach(select => {
+                select.addEventListener('change', handleReservationStatusChange);
             });
 
-            // Add event listeners for view buttons
-            document.querySelectorAll('.view-reservation').forEach(btn => {
-                btn.addEventListener('click', viewReservationDetails);
-            });
         }, (error) => {
             console.error('Error loading all reservations:', error);
         });
 }
 
-// Handle status changes
-async function handleStatusChange(e) {
+// Handle order status changes
+async function handleOrderStatusChange(e) {
     const select = e.target;
     const newStatus = select.value;
     const orderId = select.getAttribute('data-order-id');
-    const reservationId = select.getAttribute('data-reservation-id');
     
     try {
-        if (orderId) {
-            await db.collection('orders').doc(orderId).update({
-                orderStatus: newStatus
-            });
-        } else if (reservationId) {
-            await db.collection('reservations').doc(reservationId).update({
-                status: newStatus
-            });
-        }
+        await db.collection('orders').doc(orderId).update({
+            status: newStatus
+        });
+        console.log(`Order ${orderId} status updated to ${newStatus}`);
     } catch (error) {
-        console.error('Error updating status:', error);
+        console.error('Error updating order status:', error);
         alert('Error updating status. Please try again.');
     }
 }
 
-// View order details
-function viewOrderDetails(e) {
-    const order = JSON.parse(e.target.closest('.view-order').getAttribute('data-order'));
+// Handle reservation status changes
+async function handleReservationStatusChange(e) {
+    const select = e.target;
+    const newStatus = select.value;
+    const reservationId = select.getAttribute('data-reservation-id');
     
-    const details = `
-        <strong>Order ID:</strong> ${order.orderId}<br>
-        <strong>Customer:</strong> ${order.customerName}<br>
-        <strong>Email:</strong> ${order.customerEmail}<br>
-        <strong>Phone:</strong> ${order.customerPhone}<br>
-        <strong>Location:</strong> ${order.vendorLocation}<br>
-        <strong>Main Dish:</strong> ${order.mainDish}<br>
-        <strong>Protein:</strong> ${order.protein}<br>
-        <strong>Extra Protein:</strong> ${order.extraProtein || 'None'}<br>
-        <strong>Accompaniment:</strong> ${order.accompaniment || 'None'}<br>
-        <strong>Drinks:</strong> ${order.drinks || 'None'}<br>
-        <strong>Packaging:</strong> ${order.packaging}<br>
-        <strong>Delivery:</strong> ${order.deliveryPeriod}<br>
-        <strong>Total:</strong> ¢${order.totalAmount?.toFixed(2) || '0.00'}<br>
-        <strong>Notes:</strong> ${order.additionalNotes || 'None'}
-    `;
-    
-    alert(details);
-}
-
-// View reservation details
-function viewReservationDetails(e) {
-    const reservation = JSON.parse(e.target.closest('.view-reservation').getAttribute('data-reservation'));
-    
-    const details = `
-        <strong>Reservation ID:</strong> ${reservation.reservationId}<br>
-        <strong>Customer:</strong> ${reservation.customerName}<br>
-        <strong>Email:</strong> ${reservation.customerEmail}<br>
-        <strong>Phone:</strong> ${reservation.customerPhone}<br>
-        <strong>Date:</strong> ${reservation.reservationDate}<br>
-        <strong>Time:</strong> ${reservation.reservationTime}<br>
-        <strong>People:</strong> ${reservation.numberOfPeople}<br>
-        <strong>Special Requests:</strong> ${reservation.specialRequests || 'None'}
-    `;
-    
-    alert(details);
-}
-
-// Setup charts
-function setupCharts() {
-    // Revenue Chart
-    const revenueCtx = document.getElementById('revenueChart');
-    if (revenueCtx) {
-        const revenueChart = new Chart(revenueCtx.getContext('2d'), {
-            type: 'line',
-            data: {
-                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                datasets: [{
-                    label: 'Daily Revenue (¢)',
-                    data: [0, 0, 0, 0, 0, 0, 0],
-                    borderColor: 'rgb(75, 192, 192)',
-                    tension: 0.1,
-                    fill: true,
-                    backgroundColor: 'rgba(75, 192, 192, 0.1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    }
-                }
-            }
+    try {
+        await db.collection('reservations').doc(reservationId).update({
+            status: newStatus
         });
+        console.log(`Reservation ${reservationId} status updated to ${newStatus}`);
+    } catch (error) {
+        console.error('Error updating reservation status:', error);
+        alert('Error updating status. Please try again.');
     }
 }
 
@@ -390,19 +393,16 @@ function formatDate(timestamp) {
 }
 
 function getOrderItemsCount(order) {
-    let count = 0;
-    if (order.mainDish) count++;
-    if (order.protein) count++;
-    if (order.extraProtein && order.extraProtein !== 'None') count++;
-    if (order.accompaniment && order.accompaniment !== 'None') count++;
-    if (order.drinks && order.drinks !== 'None') count++;
-    return count;
+    // Count items based on your order structure
+    if (order.items && Array.isArray(order.items)) {
+        return order.items.length;
+    }
+    return 1; // Default count
 }
 
-function getOrderExtras(order) {
-    const extras = [];
-    if (order.extraProtein && order.extraProtein !== 'None') extras.push(order.extraProtein.split(' - ')[0]);
-    if (order.accompaniment && order.accompaniment !== 'None') extras.push(order.accompaniment.split(' - ')[0]);
-    if (order.drinks && order.drinks !== 'None') extras.push(order.drinks.split(' - ')[0]);
-    return extras.join(', ');
+function getOrderItemsSummary(order) {
+    if (order.items && Array.isArray(order.items)) {
+        return order.items.map(item => `${item.name} (x${item.quantity})`).join('<br>');
+    }
+    return 'Order details';
 }
