@@ -1,104 +1,15 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Login | Isaacski Restaurant</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            height: 100vh;
-            display: flex;
-            align-items: center;
-        }
-
-        .login-card {
-            background: white;
-            border-radius: 15px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
-        }
-    </style>
+    <title>Redirecting...</title>
+    <script>
+        window.location.href = 'login.html';
+    </script>
 </head>
 
 <body>
-    <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6 col-lg-4">
-                <div class="login-card p-4">
-                    <div class="text-center mb-4">
-                        <h2 class="text-primary">
-                            <i class="fas fa-utensils"></i> Restaurant Admin
-                        </h2>
-                        <p class="text-muted">Sign in to your dashboard</p>
-                    </div>
-
-                    <form id="loginForm">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" required>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100">Sign In</button>
-                    </form>
-
-                    <div id="errorMessage" class="alert alert-danger mt-3 d-none"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-
-    <!-- Your Firebase Config -->
-    <script src="../js/firebase-config.js"></script>
-
-    - Add this right after the Firebase config script in admin/index.html -->
-    <script>
-        // Check authentication
-        auth.onAuthStateChanged((user) => {
-            if (user) {
-                // User is signed in
-                console.log("Admin user:", user.email);
-                loadDashboardData();
-                setupEventListeners();
-            } else {
-                // No user signed in, redirect to login
-                console.log("No user signed in, redirecting to login...");
-                window.location.href = 'login.html';
-            }
-        });
-
-        // Add this function to show login required message
-        function showLoginMessage() {
-            const mainContent = document.querySelector('main');
-            mainContent.innerHTML = `
-            <div class="container-fluid">
-                <div class="row justify-content-center">
-                    <div class="col-md-6 text-center">
-                        <div class="card shadow mt-5">
-                            <div class="card-body py-5">
-                                <h3 class="text-warning">
-                                    <i class="fas fa-exclamation-triangle"></i> Authentication Required
-                                </h3>
-                                <p class="lead">Please login to access the admin dashboard.</p>
-                                <a href="login.html" class="btn btn-primary btn-lg">
-                                    <i class="fas fa-sign-in-alt"></i> Go to Login
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-        }
-    </script>
+    <p>Redirecting to login page...</p>
 </body>
 
 </html>
