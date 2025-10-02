@@ -5,13 +5,25 @@ auth.onAuthStateChanged((user) => {
     if (user) {
         // User is signed in
         console.log("Admin user:", user.email);
-        loadDashboardData();
-        setupEventListeners();
+        initializeDashboard();
     } else {
         // No user signed in, redirect to login
-        window.location.href = 'login.html';
+        console.log("No user signed in, redirecting to login...");
+        setTimeout(() => {
+            window.location.href = 'login.html';
+        }, 1000);
     }
 });
+
+function initializeDashboard() {
+    try {
+        loadDashboardData();
+        setupEventListeners();
+        showSection('dashboard');
+    } catch (error) {
+        console.error('Error initializing dashboard:', error);
+    }
+}
 
 // Setup event listeners
 function setupEventListeners() {
@@ -30,9 +42,14 @@ function setupEventListeners() {
 
     // Logout
     document.getElementById('logoutBtn').addEventListener('click', () => {
-        auth.signOut().then(() => {
-            window.location.href = 'login.html';
-        });
+        if (confirm('Are you sure you want to logout?')) {
+            auth.signOut().then(() => {
+                window.location.href = 'login.html';
+            }).catch((error) => {
+                console.error('Logout error:', error);
+                alert('Error during logout. Please try again.');
+            });
+        }
     });
 }
 
@@ -41,7 +58,10 @@ function showSection(sectionName) {
     document.querySelectorAll('.content-section').forEach(section => {
         section.style.display = 'none';
     });
-    document.getElementById(sectionName).style.display = 'block';
+    const targetSection = document.getElementById(sectionName);
+    if (targetSection) {
+        targetSection.style.display = 'block';
+    }
 }
 
 // Load all dashboard data
@@ -77,6 +97,8 @@ function loadTodayOrders() {
             document.getElementById('todayOrders').textContent = totalOrders;
             document.getElementById('todayRevenue').textContent = '¢' + totalRevenue.toFixed(2);
             document.getElementById('pendingOrders').textContent = pendingOrders;
+        }, (error) => {
+            console.error('Error loading today orders:', error);
         });
 }
 
@@ -88,6 +110,8 @@ function loadTodayReservations() {
         .where('reservationDate', '==', today)
         .onSnapshot((snapshot) => {
             document.getElementById('todayReservations').textContent = snapshot.size;
+        }, (error) => {
+            console.error('Error loading today reservations:', error);
         });
 }
 
@@ -98,6 +122,8 @@ function loadRecentOrders() {
         .limit(5)
         .onSnapshot((snapshot) => {
             const tableBody = document.querySelector('#recentOrdersTable tbody');
+            if (!tableBody) return;
+            
             tableBody.innerHTML = '';
             
             snapshot.forEach(doc => {
@@ -114,6 +140,8 @@ function loadRecentOrders() {
                 `;
                 tableBody.innerHTML += row;
             });
+        }, (error) => {
+            console.error('Error loading recent orders:', error);
         });
 }
 
@@ -123,6 +151,8 @@ function loadAllOrders() {
         .orderBy('timestamp', 'desc')
         .onSnapshot((snapshot) => {
             const tableBody = document.querySelector('#ordersTable tbody');
+            if (!tableBody) return;
+            
             tableBody.innerHTML = '';
             
             snapshot.forEach(doc => {
@@ -173,6 +203,8 @@ function loadAllOrders() {
             document.querySelectorAll('.view-order').forEach(btn => {
                 btn.addEventListener('click', viewOrderDetails);
             });
+        }, (error) => {
+            console.error('Error loading all orders:', error);
         });
 }
 
@@ -182,6 +214,8 @@ function loadAllReservations() {
         .orderBy('reservationDateTime', 'desc')
         .onSnapshot((snapshot) => {
             const tableBody = document.querySelector('#reservationsTable tbody');
+            if (!tableBody) return;
+            
             tableBody.innerHTML = '';
             
             snapshot.forEach(doc => {
@@ -230,6 +264,8 @@ function loadAllReservations() {
             document.querySelectorAll('.view-reservation').forEach(btn => {
                 btn.addEventListener('click', viewReservationDetails);
             });
+        }, (error) => {
+            console.error('Error loading all reservations:', error);
         });
 }
 
@@ -301,31 +337,31 @@ function viewReservationDetails(e) {
 // Setup charts
 function setupCharts() {
     // Revenue Chart
-    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-    const revenueChart = new Chart(revenueCtx, {
-        type: 'line',
-        data: {
-            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-            datasets: [{
-                label: 'Daily Revenue (¢)',
-                data: [0, 0, 0, 0, 0, 0, 0], // Will be updated with real data
-                borderColor: 'rgb(75, 192, 192)',
-                tension: 0.1,
-                fill: true,
-                backgroundColor: 'rgba(75, 192, 192, 0.1)'
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {
-                legend: {
-                    position: 'top',
+    const revenueCtx = document.getElementById('revenueChart');
+    if (revenueCtx) {
+        const revenueChart = new Chart(revenueCtx.getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                datasets: [{
+                    label: 'Daily Revenue (¢)',
+                    data: [0, 0, 0, 0, 0, 0, 0],
+                    borderColor: 'rgb(75, 192, 192)',
+                    tension: 0.1,
+                    fill: true,
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    }
                 }
             }
-        }
-    });
-
-    // You can add more chart setups here for analytics
+        });
+    }
 }
 
 // Helper functions
@@ -345,8 +381,12 @@ function getStatusBadge(status) {
 
 function formatDate(timestamp) {
     if (!timestamp) return 'N/A';
-    const date = timestamp.toDate();
-    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    try {
+        const date = timestamp.toDate();
+        return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+    } catch (error) {
+        return 'Invalid Date';
+    }
 }
 
 function getOrderItemsCount(order) {
