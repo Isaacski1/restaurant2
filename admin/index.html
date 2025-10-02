@@ -59,31 +59,45 @@
     <!-- Your Firebase Config -->
     <script src="../js/firebase-config.js"></script>
 
+    - Add this right after the Firebase config script in admin/index.html -->
     <script>
-        // Check if user is already logged in
+        // Check authentication
         auth.onAuthStateChanged((user) => {
             if (user) {
-                window.location.href = 'index.html';
+                // User is signed in
+                console.log("Admin user:", user.email);
+                loadDashboardData();
+                setupEventListeners();
+            } else {
+                // No user signed in, redirect to login
+                console.log("No user signed in, redirecting to login...");
+                window.location.href = 'login.html';
             }
         });
 
-        // Handle login form submission
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const errorMessage = document.getElementById('errorMessage');
-
-            auth.signInWithEmailAndPassword(email, password)
-                .then((userCredential) => {
-                    window.location.href = 'index.html';
-                })
-                .catch((error) => {
-                    errorMessage.textContent = error.message;
-                    errorMessage.classList.remove('d-none');
-                });
-        });
+        // Add this function to show login required message
+        function showLoginMessage() {
+            const mainContent = document.querySelector('main');
+            mainContent.innerHTML = `
+            <div class="container-fluid">
+                <div class="row justify-content-center">
+                    <div class="col-md-6 text-center">
+                        <div class="card shadow mt-5">
+                            <div class="card-body py-5">
+                                <h3 class="text-warning">
+                                    <i class="fas fa-exclamation-triangle"></i> Authentication Required
+                                </h3>
+                                <p class="lead">Please login to access the admin dashboard.</p>
+                                <a href="login.html" class="btn btn-primary btn-lg">
+                                    <i class="fas fa-sign-in-alt"></i> Go to Login
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        }
     </script>
 </body>
 
