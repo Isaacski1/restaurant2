@@ -74,7 +74,19 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
 
+
+
     <script>
+        // In login.html, add this at the top of the script
+        auth.onAuthStateChanged((user) => {
+            console.log("Auth state changed - User:", user);
+            if (user) {
+                console.log("User is already logged in, redirecting...");
+                window.location.href = 'dashboard.html';
+            } else {
+                console.log("No user logged in, showing login form");
+            }
+        });
         // Firebase config directly in the file
         const firebaseConfig = {
             apiKey: "AIzaSyDvpv148pehFCPMwuw1hDYPPnWA67EOHOU",
