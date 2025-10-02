@@ -217,11 +217,16 @@ function loadAllOrders() {
             
             if (snapshot.empty) {
                 tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+                console.log("No orders in database");
                 return;
             }
             
+            console.log(`Found ${snapshot.size} orders`);
+            
             snapshot.forEach(doc => {
                 const order = doc.data();
+                console.log("Order data:", order);
+                
                 const row = `
                     <tr>
                         <td>${doc.id.substring(0, 8)}</td>
@@ -230,12 +235,12 @@ function loadAllOrders() {
                         </td>
                         <td>
                             ${order.customerEmail || 'N/A'}<br>
-                            ${order.customerPhone || 'N/A'}
+                            <small>${order.customerPhone || 'N/A'}</small>
                         </td>
                         <td>
-                            ${getOrderItemsSummary(order)}
+                            ${getOrderItemsDisplay(order)}
                         </td>
-                        <td>¢${(order.total || order.totalAmount || 0).toFixed(2)}</td>
+                        <td>¢${(order.total || 0).toFixed(2)}</td>
                         <td>
                             <select class="form-select form-select-sm status-select" data-order-id="${doc.id}">
                                 <option value="pending" ${(order.status || order.orderStatus) === 'pending' ? 'selected' : ''}>Pending</option>
@@ -247,7 +252,7 @@ function loadAllOrders() {
                         </td>
                         <td>${formatDate(order.timestamp)}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary view-order" data-order='${JSON.stringify(order)}'>
+                            <button class="btn btn-sm btn-outline-primary view-order" onclick="viewOrderDetails('${doc.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -314,7 +319,7 @@ function loadAllReservations() {
                         </td>
                         <td>${reservation.specialRequests || 'None'}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary view-reservation" data-reservation='${JSON.stringify(reservation)}'>
+                            <button class="btn btn-sm btn-outline-primary view-reservation" onclick="viewReservationDetails('${doc.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -367,6 +372,71 @@ async function handleReservationStatusChange(e) {
     }
 }
 
+// View order details
+function viewOrderDetails(orderId) {
+    db.collection('orders').doc(orderId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const order = doc.data();
+                const details = `
+                    <strong>Order ID:</strong> ${orderId}<br>
+                    <strong>Customer:</strong> ${order.customerName}<br>
+                    <strong>Email:</strong> ${order.customerEmail || 'N/A'}<br>
+                    <strong>Phone:</strong> ${order.customerPhone || 'N/A'}<br>
+                    <strong>Address:</strong> ${order.customerAddress || 'N/A'}<br>
+                    <strong>Items:</strong><br>
+                    ${order.items ? order.items.map(item => 
+                        `- ${item.name} x${item.quantity} @ ¢${item.price} = ¢${(item.price * item.quantity).toFixed(2)}` +
+                        (item.specialInstructions ? ` (${item.specialInstructions})` : '')
+                    ).join('<br>') : 'No items'}<br>
+                    <strong>Subtotal:</strong> ¢${order.subtotal?.toFixed(2) || '0.00'}<br>
+                    <strong>Tax:</strong> ¢${order.tax?.toFixed(2) || '0.00'}<br>
+                    <strong>Total:</strong> ¢${order.total?.toFixed(2) || '0.00'}<br>
+                    <strong>Payment Method:</strong> ${order.paymentMethod || 'N/A'}<br>
+                    <strong>Notes:</strong> ${order.notes || 'None'}<br>
+                    <strong>Order Time:</strong> ${formatDate(order.timestamp)}
+                `;
+                
+                // Create a modal or use alert for simplicity
+                alert(details);
+            } else {
+                alert("Order not found");
+            }
+        })
+        .catch((error) => {
+            console.error("Error getting order:", error);
+            alert("Error loading order details");
+        });
+}
+
+// View reservation details
+function viewReservationDetails(reservationId) {
+    db.collection('reservations').doc(reservationId).get()
+        .then((doc) => {
+            if (doc.exists) {
+                const reservation = doc.data();
+                const details = `
+                    <strong>Reservation ID:</strong> ${reservationId}<br>
+                    <strong>Customer:</strong> ${reservation.name}<br>
+                    <strong>Email:</strong> ${reservation.email || 'N/A'}<br>
+                    <strong>Phone:</strong> ${reservation.phone || 'N/A'}<br>
+                    <strong>Date:</strong> ${reservation.date || 'N/A'}<br>
+                    <strong>Time:</strong> ${reservation.time || 'N/A'}<br>
+                    <strong>People:</strong> ${reservation.guests || 'N/A'}<br>
+                    <strong>Special Requests:</strong> ${reservation.specialRequests || 'None'}<br>
+                    <strong>Reservation Time:</strong> ${formatDate(reservation.timestamp)}
+                `;
+                alert(details);
+            } else {
+                alert("Reservation not found");
+            }
+        })
+        .catch((error) => {
+            console.error("Error getting reservation:", error);
+            alert("Error loading reservation details");
+        });
+}
+
 // Helper functions
 function getStatusBadge(status) {
     const statusMap = {
@@ -406,3 +476,30 @@ function getOrderItemsSummary(order) {
     }
     return 'Order details';
 }
+
+function getOrderItemsDisplay(order) {
+    if (order.items && Array.isArray(order.items)) {
+        return order.items.map(item => 
+            `${item.name} x${item.quantity} - ¢${(item.price * item.quantity).toFixed(2)}`
+        ).join('<br>');
+    }
+    return 'No items';
+}
+
+// Debug function to check Firebase data
+function debugCheckOrders() {
+    console.log("=== DEBUG: Checking orders collection ===");
+    db.collection('orders').get()
+        .then((snapshot) => {
+            console.log(`Total orders in database: ${snapshot.size}`);
+            snapshot.forEach(doc => {
+                console.log(`Order ${doc.id}:`, doc.data());
+            });
+        })
+        .catch(error => {
+            console.error("Debug error:", error);
+        });
+}
+
+// Call this function to debug
+// debugCheckOrders();

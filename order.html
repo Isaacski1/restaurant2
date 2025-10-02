@@ -544,6 +544,37 @@
   <!-- Firebase Configuration -->
   <script src="js/firebase-config.js"></script>
 
+  <!-- Add this to your order.html -->
+  <script>
+    // Test function to check if orders are saving
+    function testOrderSave() {
+      const testOrder = {
+        customerName: "Test Customer",
+        customerEmail: "test@example.com",
+        customerPhone: "1234567890",
+        items: [
+          { name: "Test Item", price: 10.99, quantity: 1 }
+        ],
+        total: 10.99,
+        status: "pending",
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+
+      db.collection('orders').add(testOrder)
+        .then((docRef) => {
+          console.log("Test order saved with ID: ", docRef.id);
+          alert("Test order saved successfully! Check Firebase console.");
+        })
+        .catch((error) => {
+          console.error("Error saving test order: ", error);
+          alert("Error saving test order: " + error.message);
+        });
+    }
+
+    // Call this function to test
+    // testOrderSave();
+  </script>
+
   <script>
     // Initialize EmailJS
     (function () {
