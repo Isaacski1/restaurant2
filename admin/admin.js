@@ -501,5 +501,28 @@ function debugCheckOrders() {
         });
 }
 
+// Add this debug function to check if admin can read orders
+function debugCheckAdminAccess() {
+    console.log("🔍 Checking admin access to orders...");
+    
+    db.collection('orders').limit(1).get()
+        .then((snapshot) => {
+            if (snapshot.empty) {
+                console.log("✅ Can read orders, but no orders found");
+            } else {
+                console.log("✅ Can read orders, found:", snapshot.size, "orders");
+                snapshot.forEach(doc => {
+                    console.log("Sample order:", doc.data());
+                });
+            }
+        })
+        .catch((error) => {
+            console.error("❌ Cannot read orders:", error);
+        });
+}
+
+// Call this in your admin dashboard
+// debugCheckAdminAccess();
+
 // Call this function to debug
 // debugCheckOrders();

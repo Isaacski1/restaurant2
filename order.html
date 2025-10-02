@@ -535,17 +535,72 @@
   </section>
   <!-- Food Selection Categories End -->
 
+  <!-- Add this somewhere in your order.html -->
+  <div class="mt-4 p-3 border rounded bg-light">
+    <h5>Firebase Test</h5>
+    <button id="testFirebaseBtn" class="btn btn-warning btn-sm">
+      Test Firebase Connection
+    </button>
+    <div id="testResult" class="mt-2"></div>
+  </div>
+
   <!-- Chat Us On Whatsapp -->
   <a href="https://api.whatsapp.com/send?phone=233549175604&text=Hello%20Isaacski%20Restaurant" class="whatsapp-chat"
     target="_blank" rel="noopener noreferrer">
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
 
+
+
+
+
   <!-- Firebase Configuration -->
   <script src="js/firebase-config.js"></script>
 
+  <script>
+    // Test Firebase connection
+    document.getElementById('testFirebaseBtn').addEventListener('click', function () {
+      const testResult = document.getElementById('testResult');
+
+      try {
+        // Test if Firebase is available
+        if (typeof firebase === 'undefined') {
+          testResult.innerHTML = '<span class="text-danger">❌ Firebase not loaded</span>';
+          return;
+        }
+
+        if (!firebase.apps.length) {
+          testResult.innerHTML = '<span class="text-danger">❌ Firebase not initialized</span>';
+          return;
+        }
+
+        // Test Firestore write
+        const testData = {
+          test: true,
+          message: "Firebase test successful",
+          timestamp: new Date()
+        };
+
+        firebase.firestore().collection('test').add(testData)
+          .then((docRef) => {
+            testResult.innerHTML = '<span class="text-success">✅ Firebase working! Test document created.</span>';
+            console.log("Test document ID:", docRef.id);
+          })
+          .catch((error) => {
+            testResult.innerHTML = `<span class="text-danger">❌ Firebase error: ${error.message}</span>`;
+            console.error("Firebase test error:", error);
+          });
+
+      } catch (error) {
+        testResult.innerHTML = `<span class="text-danger">❌ Error: ${error.message}</span>`;
+        console.error("Test error:", error);
+      }
+    });
+  </script>
+
   <!-- Add this to your order.html -->
   <script>
+
     // Test function to check if orders are saving
     function testOrderSave() {
       const testOrder = {
@@ -996,6 +1051,23 @@ Order Details:
     target="_blank" rel="noopener noreferrer">
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
+
+  <!-- In your order.html, add these scripts before closing </body> -->
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+  <!-- Your order system -->
+  <script src="js/order-system.js"></script>
+
+  <!-- Test button HTML (add this to your form) -->
+  <div class="mt-3">
+    <button type="button" id="testOrderBtn" class="btn btn-warning">
+      <i class="fas fa-vial"></i> Test Order Save
+    </button>
+    <small class="text-muted d-block">Click this to test if orders save to Firebase</small>
+  </div>
 
   <script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
   <script type="text/javascript" src="vendor/jquery/jquery-3.2.1.min.js"></script>
