@@ -19,6 +19,12 @@
   <!--===============================================================================================-->
   <!-- Paystack -->
   <script src="https://js.paystack.co/v1/inline.js"></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" />
   <!--===============================================================================================-->
   <link rel="icon" type="image/png" href="images/icons/favicon.png" />
@@ -221,23 +227,23 @@
 
           <div class="input-boxs my-4">
             <label for="full_name">Full Name</label>
-            <input type="text" name="fullname" id="fullname" class="input-fill" />
+            <input type="text" name="fullname" id="fullname" class="input-fill" required />
           </div>
 
           <div class="input-boxs my-4">
             <label for="email">Email Address</label>
-            <input type="email" name="email" class="input-fill" />
+            <input type="email" name="email" id="email" class="input-fill" required />
           </div>
 
           <div class="input-boxs my-4">
             <label for="telephone">Telephone</label>
-            <input type="phone" name="telephone" id="telephone" class="input-fill" />
+            <input type="tel" name="telephone" id="telephone" class="input-fill" required />
           </div>
           <!-- Vendor Location -->
 
           <div class="input-boxs my-4">
             <label for="vendor-location">Vendor Location</label>
-            <select name="vendor_location" id="vendor_location" class="input-fill">
+            <select name="vendor_location" id="vendor_location" class="input-fill" required>
               <option value="" disabled selected>Select Location</option>
               <option value="central-market">Central Market</option>
               <option value="swedru-zongo">Swedru Zongo</option>
@@ -385,8 +391,8 @@
 
           <div class="input-boxs my-4">
             <label for="Protein2">Extra Protein</label>
-            <select name="protein2" id="protein2" class="input-fill" required>
-              <option value="" disabled selected>Select Protein</option>
+            <select name="protein2" id="protein2" class="input-fill">
+              <option value="" disabled selected>Select Extra Protein</option>
               <optgroup label="Fish">
                 <option value="Red Fish - ¢7.00">Red Fish - ¢7.00</option>
                 <option value="Tilapia - ¢17.00">Tilapia - ¢17.00</option>
@@ -423,7 +429,7 @@
 
           <div class="input-boxs my-4">
             <label for="Accompaniment">Accompaniment</label>
-            <select name="Accompaniment" id="Accompaniment" title="Accompaniment" class="input-fill" required>
+            <select name="Accompaniment" id="Accompaniment" title="Accompaniment" class="input-fill">
               <option value="" disabled selected>Select Accompaniment</option>
               <option value="Salad w/ Cream - ¢8.00">
                 Salad with Cream - ¢8.00
@@ -438,7 +444,7 @@
 
           <div class="input-boxs my-4">
             <label for="Drinks">Drinks</label>
-            <select id="Drinks" name="Drinks" title="Drinks" class="input-fill" required>
+            <select id="Drinks" name="Drinks" title="Drinks" class="input-fill">
               <option value="" disabled selected>Select Drink</option>
               <optgroup label="Water">
                 <option value="Bottled Water 500ml - ¢5.00">
@@ -535,14 +541,13 @@
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
 
-  <!-- Add these scripts before your custom JavaScript -->
-  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-  <script src="https://js.paystack.co/v1/inline.js"></script>
+  <!-- Firebase Configuration -->
+  <script src="js/firebase-config.js"></script>
 
   <script>
     // Initialize EmailJS
     (function () {
-      emailjs.init("YOUR_EMAILJS_PUBLIC_KEY"); // Replace with your EmailJS public key
+      emailjs.init("-WX6aDIktn3nAw81E");
     })();
 
     // Total Cost Calculation (Keep your existing code)
@@ -612,7 +617,49 @@
       do_total();
     });
 
-    // Paystack Payment with Email.js Integration
+    // Save order to Firebase
+    async function saveOrderToFirebase(orderData, orderId, paymentReference) {
+      try {
+        const firebaseOrderData = {
+          orderId: orderId,
+          customerName: orderData.fullname,
+          customerEmail: orderData.email,
+          customerPhone: orderData.telephone,
+          vendorLocation: orderData.vendor_location,
+          additionalNotes: orderData.message || 'None',
+
+          // Order items
+          mainDish: orderData.main_dishes,
+          protein: orderData.protein,
+          extraProtein: orderData.protein2 || 'None',
+          accompaniment: orderData.Accompaniment || 'None',
+          drinks: orderData.Drinks || 'None',
+          packaging: orderData.Packaging,
+          deliveryPeriod: orderData.Delivery,
+
+          // Payment details
+          totalAmount: parseFloat(document.getElementById('amount').value),
+          currency: 'GHS',
+          paymentReference: paymentReference,
+          paymentStatus: 'completed',
+          orderStatus: 'pending',
+
+          // Timestamps
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          orderDate: new Date().toISOString()
+        };
+
+        // Save to Firebase
+        await db.collection('orders').doc(orderId).set(firebaseOrderData);
+        console.log('Order saved to Firebase successfully');
+        return true;
+      } catch (error) {
+        console.error('Error saving order to Firebase:', error);
+        return false;
+      }
+    }
+
+    // Paystack Payment with Firebase Integration
     document.getElementById("pay-now-btn").addEventListener("click", function () {
       const form = document.getElementById("paymentForm");
       const formData = new FormData(form);
@@ -622,8 +669,13 @@
       });
 
       // Basic validation
-      if (!data.fullname || !data.email || !data.telephone) {
-        alert("Please fill in Full Name, Email, and Telephone.");
+      if (!data.fullname || !data.email || !data.telephone || !data.vendor_location) {
+        alert("Please fill in all required fields: Full Name, Email, Telephone, and Vendor Location.");
+        return;
+      }
+
+      if (!data.main_dishes || !data.protein || !data.Packaging || !data.Delivery) {
+        alert("Please select Main Dish, Protein, Packaging, and Delivery Period.");
         return;
       }
 
@@ -648,7 +700,7 @@
         email: data.email,
         amount: parseFloat(total) * 100,
         currency: "GHS",
-        ref: orderId, // Use order ID as reference
+        ref: orderId,
         metadata: {
           custom_fields: [
             {
@@ -681,7 +733,14 @@
 
     async function handlePaymentSuccess(response, data, orderId) {
       try {
-        // 1. Send email using Email.js
+        // 1. Save to Firebase first
+        const firebaseSaved = await saveOrderToFirebase(data, orderId, response.reference);
+
+        if (!firebaseSaved) {
+          throw new Error('Failed to save order to database');
+        }
+
+        // 2. Send email using Email.js
         const templateParams = {
           // Customer Information
           fullname: data.fullname,
@@ -693,9 +752,9 @@
           // Food Selection
           main_dishes: data.main_dishes,
           protein: data.protein,
-          protein2: data.protein2,
-          accompaniment: data.Accompaniment,
-          drinks: data.Drinks,
+          protein2: data.protein2 || 'None',
+          accompaniment: data.Accompaniment || 'None',
+          drinks: data.Drinks || 'None',
           packaging: data.Packaging,
           delivery: data.Delivery,
 
@@ -710,29 +769,29 @@
         await emailjs.send('service_uvwuw6g', 'template_phvfhln', templateParams);
         console.log('Email sent successfully via Email.js');
 
-        // 2. Format WhatsApp message
+        // 3. Format WhatsApp message
         const whatsappMessage = `New Order Payment Successful! 💰
-  Order ID: ${orderId}
-  Payment Ref: ${response.reference}
-  
-  Customer Details:
-  👤 Full Name: ${data.fullname}
-  📧 Email: ${data.email}
-  📞 Phone: ${data.telephone}
-  📍 Vendor Location: ${data.vendor_location}
-  
-  Order Details:
-  🍛 Main Dish: ${data.main_dishes}
-  🥩 Protein: ${data.protein}
-  🥩 Extra Protein: ${data.protein2}
-  🥗 Accompaniment: ${data.Accompaniment}
-  🥤 Drinks: ${data.Drinks}
-  📦 Packaging: ${data.Packaging}
-  🚚 Delivery: ${data.Delivery}
-  
-  💰 Total: ${document.getElementById('total-cost').textContent}
-  
-  📝 Additional Notes: ${data.message || 'None'}`;
+Order ID: ${orderId}
+Payment Ref: ${response.reference}
+
+Customer Details:
+👤 Full Name: ${data.fullname}
+📧 Email: ${data.email}
+📞 Phone: ${data.telephone}
+📍 Vendor Location: ${data.vendor_location}
+
+Order Details:
+🍛 Main Dish: ${data.main_dishes}
+🥩 Protein: ${data.protein}
+🥩 Extra Protein: ${data.protein2 || 'None'}
+🥗 Accompaniment: ${data.Accompaniment || 'None'}
+🥤 Drinks: ${data.Drinks || 'None'}
+📦 Packaging: ${data.Packaging}
+🚚 Delivery: ${data.Delivery}
+
+💰 Total: ${document.getElementById('total-cost').textContent}
+
+📝 Additional Notes: ${data.message || 'None'}`;
 
         const whatsappLink = `https://wa.me/233549175604?text=${encodeURIComponent(whatsappMessage)}`;
         window.open(whatsappLink, "_blank");
@@ -742,8 +801,8 @@
         document.getElementById('total-cost').textContent = '¢0.00';
 
       } catch (error) {
-        console.error("Error during email or WhatsApp submission:", error);
-        alert("Payment was successful but there was an issue sending the order notification. Please contact us with your Order ID: " + orderId);
+        console.error("Error during order processing:", error);
+        alert("Payment was successful but there was an issue processing your order. Please contact us with your Order ID: " + orderId);
       }
     }
   </script>
@@ -795,7 +854,7 @@
             <a href="#" class="txt15"> @Isaacski Restaurant </a>
 
             <p class="txt14 m-b-18">
-              Excited to announce our new menu! Try our chef’s specials this
+              Excited to announce our new menu! Try our chef's specials this
               weekend.
               <a href="#" class="txt15"> www.isaacskirestaurant.com </a>
             </p>
@@ -938,8 +997,6 @@
   <script src="js/whatsaap-api.js"></script>
   <script src="js/script.js"></script>
   <script src="js/email-template.js"></script>
-  <!-- Paystack -->
-  <script src="https://js.paystack.co/v1/inline.js"></script>
 
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
     integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="

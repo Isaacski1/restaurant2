@@ -1,9 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
-<!-- Mirrored from preview.colorlib.com/theme/pato/reservation.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 06 Jun 2025 18:45:25 GMT -->
 
 <head>
-
   <!-- Email.js SDK -->
   <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js">
   </script>
@@ -15,7 +13,12 @@
     })();
   </script>
 
-  <title>Reservation</title>
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+  <title>Reservation | Isaacski Restaurant</title>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!--===============================================================================================-->
@@ -219,13 +222,17 @@
             <h3 class="tit3 t-center m-b-35 m-t-2">Book table</h3>
           </div>
 
-          <form class="wrap-form-booking">
+          <!-- Reservation Message Display -->
+          <div id="reservationMessage" class="alert" style="display: none; margin-bottom: 20px;"></div>
+
+          <form class="wrap-form-booking" id="reservationForm">
             <div class="row">
               <div class="col-md-6">
                 <!-- Date -->
                 <span class="txt9"> Date </span>
                 <div class="wrap-inputdate pos-relative txt10 size12 bo2 bo-rad-10 m-t-3 m-b-23">
-                  <input class="my-calendar bo-rad-10 sizefull txt10 p-l-20" type="text" name="date" required />
+                  <input class="my-calendar bo-rad-10 sizefull txt10 p-l-20" type="date" name="date"
+                    id="reservationDate" required />
                   <i class="btn-calendar fa fa-calendar ab-r-m hov-pointer m-r-18" aria-hidden="true"></i>
                 </div>
 
@@ -233,7 +240,8 @@
                 <span class="txt9"> Time </span>
 
                 <div class="wrap-inputtime size12 bo2 bo-rad-10 m-t-3 m-b-23">
-                  <input type="time" name="Time" class="input-box" required />
+                  <input type="time" name="time" id="reservationTime" class="bo-rad-10 sizefull txt10 p-l-20"
+                    required />
                 </div>
 
                 <!-- People -->
@@ -241,22 +249,22 @@
 
                 <div class="wrap-inputpeople size12 bo2 bo-rad-10 m-t-3 m-b-23">
                   <!-- Select2 -->
-                  <select class="selection-2" name="people" required>
+                  <select class="selection-2" name="people" id="reservationPeople" required>
                     <option value="" disabled selected>
                       number of people
                     </option>
-                    <option>1 person</option>
-                    <option>2 people</option>
-                    <option>3 people</option>
-                    <option>4 people</option>
-                    <option>5 people</option>
-                    <option>6 people</option>
-                    <option>7 people</option>
-                    <option>8 people</option>
-                    <option>9 people</option>
-                    <option>10 people</option>
-                    <option>11 people</option>
-                    <option>12 people</option>
+                    <option value="1">1 person</option>
+                    <option value="2">2 people</option>
+                    <option value="3">3 people</option>
+                    <option value="4">4 people</option>
+                    <option value="5">5 people</option>
+                    <option value="6">6 people</option>
+                    <option value="7">7 people</option>
+                    <option value="8">8 people</option>
+                    <option value="9">9 people</option>
+                    <option value="10">10 people</option>
+                    <option value="11">11 people</option>
+                    <option value="12">12 people</option>
                   </select>
                 </div>
               </div>
@@ -266,30 +274,39 @@
                 <span class="txt9"> Name </span>
 
                 <div class="wrap-inputname size12 bo2 bo-rad-10 m-t-3 m-b-23">
-                  <input class="bo-rad-10 sizefull txt10 p-l-20" type="text" name="name" placeholder="Name" required />
+                  <input class="bo-rad-10 sizefull txt10 p-l-20" type="text" name="name" id="reservationName"
+                    placeholder="Name" required />
                 </div>
 
                 <!-- Phone -->
                 <span class="txt9"> Phone </span>
 
                 <div class="wrap-inputphone size12 bo2 bo-rad-10 m-t-3 m-b-23">
-                  <input class="bo-rad-10 sizefull txt10 p-l-20" type="phone" name="phone" placeholder="Phone"
-                    required />
+                  <input class="bo-rad-10 sizefull txt10 p-l-20" type="tel" name="phone" id="reservationPhone"
+                    placeholder="Phone" required />
                 </div>
 
                 <!-- Email -->
                 <span class="txt9"> Email </span>
 
                 <div class="wrap-inputemail size12 bo2 bo-rad-10 m-t-3 m-b-23">
-                  <input class="bo-rad-10 sizefull txt10 p-l-20" type="email" name="email" placeholder="Email"
-                    required />
+                  <input class="bo-rad-10 sizefull txt10 p-l-20" type="email" name="email" id="reservationEmail"
+                    placeholder="Email" required />
+                </div>
+
+                <!-- Special Requests -->
+                <span class="txt9"> Special Requests </span>
+
+                <div class="wrap-inputemail size12 bo2 bo-rad-10 m-t-3 m-b-23">
+                  <textarea class="bo-rad-10 sizefull txt10 p-l-20 p-t-10" name="specialRequests"
+                    id="reservationRequests" placeholder="Any special requests?" rows="3"></textarea>
                 </div>
               </div>
             </div>
 
             <div class="wrap-btn-booking flex-c-m m-t-6">
               <!-- Button3 -->
-              <button type="submit" class="btn3 flex-c-m size13 txt11 trans-0-4">
+              <button type="submit" class="btn3 flex-c-m size13 txt11 trans-0-4" id="submitReservation">
                 Book Table
               </button>
             </div>
@@ -352,7 +369,7 @@
             <a href="#" class="txt15"> @Isaacski Restaurant </a>
 
             <p class="txt14 m-b-18">
-              Excited to announce our new menu! Try our chef’s specials this
+              Excited to announce our new menu! Try our chef's specials this
               weekend.
               <a href="#" class="txt15"> www.isaacskirestaurant.com </a>
             </p>
@@ -466,6 +483,171 @@
     target="_blank" rel="noopener noreferrer">
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
+
+  <!-- Firebase Configuration -->
+  <script src="js/firebase-config.js"></script>
+
+  <script>
+    // Set minimum date for reservation (today)
+    document.addEventListener('DOMContentLoaded', function () {
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('reservationDate').min = today;
+    });
+
+    // Save reservation to Firebase
+    async function saveReservationToFirebase(reservationData, reservationId) {
+      try {
+        const firebaseReservationData = {
+          reservationId: reservationId,
+          customerName: reservationData.name,
+          customerEmail: reservationData.email,
+          customerPhone: reservationData.phone,
+          reservationDate: reservationData.date,
+          reservationTime: reservationData.time,
+          numberOfPeople: parseInt(reservationData.people),
+          specialRequests: reservationData.specialRequests || 'None',
+          status: 'confirmed',
+          timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+          reservationDateTime: new Date(reservationData.date + 'T' + reservationData.time).toISOString()
+        };
+
+        // Save to Firebase
+        await db.collection('reservations').doc(reservationId).set(firebaseReservationData);
+        console.log('Reservation saved to Firebase successfully');
+        return true;
+      } catch (error) {
+        console.error('Error saving reservation to Firebase:', error);
+        return false;
+      }
+    }
+
+    // Show message function
+    function showReservationMessage(message, type) {
+      const messageDiv = document.getElementById('reservationMessage');
+      messageDiv.textContent = message;
+      messageDiv.className = 'alert';
+
+      if (type === 'success') {
+        messageDiv.style.backgroundColor = '#d4edda';
+        messageDiv.style.color = '#155724';
+        messageDiv.style.border = '1px solid #c3e6cb';
+      } else {
+        messageDiv.style.backgroundColor = '#f8d7da';
+        messageDiv.style.color = '#721c24';
+        messageDiv.style.border = '1px solid #f5c6cb';
+      }
+
+      messageDiv.style.display = 'block';
+      messageDiv.style.padding = '15px';
+      messageDiv.style.borderRadius = '5px';
+      messageDiv.style.marginBottom = '20px';
+
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        messageDiv.style.display = 'none';
+      }, 5000);
+    }
+
+    // Handle reservation form submission
+    document.getElementById('reservationForm').addEventListener('submit', async function (e) {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submitReservation');
+      const originalText = submitBtn.innerHTML;
+
+      try {
+        // Disable button and show loading
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Booking...';
+
+        const formData = new FormData(this);
+        const data = {};
+        formData.forEach((value, key) => {
+          data[key] = value;
+        });
+
+        // Validate required fields
+        if (!data.name || !data.email || !data.phone || !data.date || !data.time || !data.people) {
+          throw new Error('Please fill in all required fields.');
+        }
+
+        // Validate date is not in the past
+        const selectedDate = new Date(data.date);
+        const today = new Date(); // First declaration
+        today.setHours(0, 0, 0, 0);
+
+        if (selectedDate < today) {
+          throw new Error('Please select a future date for your reservation.');
+        }
+
+        // Generate reservation ID
+        const reservationId = 'RES-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        // 1. Save to Firebase
+        const firebaseSaved = await saveReservationToFirebase(data, reservationId);
+
+        if (!firebaseSaved) {
+          throw new Error('Failed to save reservation to database.');
+        }
+
+        // 2. Send email notification
+        const templateParams = {
+          customer_name: data.name,
+          customer_email: data.email,
+          customer_phone: data.phone,
+          reservation_date: data.date,
+          reservation_time: data.time,
+          number_of_people: data.people,
+          special_requests: data.specialRequests || 'None',
+          reservation_id: reservationId,
+          timestamp: new Date().toLocaleString()
+        };
+
+        await emailjs.send('service_uvwuw6g', 'template_phvfhln', templateParams);
+        console.log('Reservation email sent successfully');
+
+        // 3. Send WhatsApp notification
+        const whatsappMessage = `New Table Reservation! 🍽️
+  Reservation ID: ${reservationId}
+  
+  Customer Details:
+  👤 Name: ${data.name}
+  📧 Email: ${data.email}
+  📞 Phone: ${data.phone}
+  
+  Reservation Details:
+  📅 Date: ${data.date}
+  ⏰ Time: ${data.time}
+  👥 People: ${data.people}
+  
+  📝 Special Requests: ${data.specialRequests || 'None'}
+  
+  Status: ✅ Confirmed`;
+
+        const whatsappLink = `https://wa.me/233549175604?text=${encodeURIComponent(whatsappMessage)}`;
+        window.open(whatsappLink, "_blank");
+
+        // Show success message
+        showReservationMessage(`🎉 Table booked successfully! Your reservation ID: ${reservationId}`, 'success');
+
+        // Reset form
+        this.reset();
+
+        // Set minimum date again after reset - FIXED: Use a different variable name
+        const currentDate = new Date().toISOString().split('T')[0];
+        document.getElementById('reservationDate').min = currentDate;
+
+      } catch (error) {
+        console.error('Error during reservation:', error);
+        showReservationMessage(error.message || 'Error making reservation. Please try again.', 'error');
+      } finally {
+        // Re-enable button
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalText;
+      }
+    });
+  </script>
+
   <!--===============================================================================================-->
   <script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
   <script type="text/javascript" src="vendor/jquery/jquery-3.2.1.min.js"></script>
@@ -500,7 +682,5 @@
     data-cf-beacon='{"rayId":"94b7a0787f6eee03","version":"2025.5.0","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"token":"cd0b4b3a733644fc843ef0b185f98241","b":1}'
     crossorigin="anonymous"></script>
 </body>
-
-<!-- Mirrored from preview.colorlib.com/theme/pato/reservation.html by HTTrack Website Copier/3.x [XR&CO'2014], Fri, 06 Jun 2025 18:45:27 GMT -->
 
 </html>
