@@ -121,8 +121,9 @@
 
             auth.signInWithEmailAndPassword(email, password)
                 .then((userCredential) => {
-                    console.log("Login successful, redirecting...");
-                    window.location.href = 'index.html';
+                    console.log("Login successful, redirecting to dashboard...");
+                    // Redirect to dashboard instead of index
+                    window.location.href = 'dashboard.html';
                 })
                 .catch((error) => {
                     console.error("Login error:", error);
@@ -135,9 +136,24 @@
                 });
         });
 
-        // Add some debug info
-        console.log("Login page loaded");
-        console.log("Firebase config:", firebaseConfig);
+        // Add this to check if login is actually working
+        auth.signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                console.log("Login successful!", userCredential.user);
+                console.log("User email:", userCredential.user.email);
+                console.log("Redirecting to dashboard...");
+                window.location.href = 'dashboard.html';
+            })
+            .catch((error) => {
+                console.error("Login failed:", error);
+                console.error("Error code:", error.code);
+                console.error("Error message:", error.message);
+                errorMessage.textContent = error.message;
+                errorMessage.classList.remove('d-none');
+
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            });
     </script>
 </body>
 
