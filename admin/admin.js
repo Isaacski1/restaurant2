@@ -200,7 +200,7 @@ function loadRecentOrders() {
         });
 }
 
-// Load all orders for orders section
+// In admin.js - Update the loadAllOrders function
 function loadAllOrders() {
     console.log("Loading all orders...");
     
@@ -216,7 +216,7 @@ function loadAllOrders() {
             tableBody.innerHTML = '';
             
             if (snapshot.empty) {
-                tableBody.innerHTML = '<tr><td colspan="8" class="text-center">No orders found</td></tr>';
+                tableBody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No orders found</td></tr>';
                 console.log("No orders in database");
                 return;
             }
@@ -225,7 +225,7 @@ function loadAllOrders() {
             
             snapshot.forEach(doc => {
                 const order = doc.data();
-                console.log("Order data:", order);
+                console.log("Processing order:", order);
                 
                 const row = `
                     <tr>
@@ -235,7 +235,7 @@ function loadAllOrders() {
                         </td>
                         <td>
                             ${order.customerEmail || 'N/A'}<br>
-                            <small>${order.customerPhone || 'N/A'}</small>
+                            <small class="text-muted">${order.customerPhone || 'N/A'}</small>
                         </td>
                         <td>
                             ${getOrderItemsDisplay(order)}
@@ -243,16 +243,16 @@ function loadAllOrders() {
                         <td>¢${(order.total || 0).toFixed(2)}</td>
                         <td>
                             <select class="form-select form-select-sm status-select" data-order-id="${doc.id}">
-                                <option value="pending" ${(order.status || order.orderStatus) === 'pending' ? 'selected' : ''}>Pending</option>
-                                <option value="preparing" ${(order.status || order.orderStatus) === 'preparing' ? 'selected' : ''}>Preparing</option>
-                                <option value="ready" ${(order.status || order.orderStatus) === 'ready' ? 'selected' : ''}>Ready</option>
-                                <option value="completed" ${(order.status || order.orderStatus) === 'completed' ? 'selected' : ''}>Completed</option>
-                                <option value="cancelled" ${(order.status || order.orderStatus) === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+                                <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="preparing" ${order.status === 'preparing' ? 'selected' : ''}>Preparing</option>
+                                <option value="ready" ${order.status === 'ready' ? 'selected' : ''}>Ready</option>
+                                <option value="completed" ${order.status === 'completed' ? 'selected' : ''}>Completed</option>
+                                <option value="cancelled" ${order.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
                             </select>
                         </td>
                         <td>${formatDate(order.timestamp)}</td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary view-order" onclick="viewOrderDetails('${doc.id}')">
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewOrderDetails('${doc.id}')">
                                 <i class="fas fa-eye"></i>
                             </button>
                         </td>
@@ -269,6 +269,16 @@ function loadAllOrders() {
         }, (error) => {
             console.error('Error loading all orders:', error);
         });
+}
+
+// Add this helper function
+function getOrderItemsDisplay(order) {
+    if (order.items && Array.isArray(order.items)) {
+        return order.items.map(item => 
+            `${item.name} x${item.quantity} - ¢${(item.price * item.quantity).toFixed(2)}`
+        ).join('<br>');
+    }
+    return 'No items listed';
 }
 
 // Load all reservations

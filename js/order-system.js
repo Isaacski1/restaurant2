@@ -6,7 +6,7 @@ class OrderSystem {
     }
 
     init() {
-        console.log("Initializing Order System...");
+        console.log("🚀 Initializing Order System...");
         this.initializeFirebase();
         this.setupEventListeners();
     }
@@ -24,20 +24,19 @@ class OrderSystem {
                 measurementId: "G-CNYCFT8N3F"
             };
 
-            // Initialize Firebase if not already initialized
+            // Initialize Firebase
             if (!firebase.apps.length) {
                 firebase.initializeApp(firebaseConfig);
                 console.log("✅ Firebase initialized in order system");
-            } else {
-                console.log("✅ Firebase already initialized");
             }
 
             this.db = firebase.firestore();
             this.initialized = true;
+            console.log("✅ Order system ready");
             
         } catch (error) {
             console.error("❌ Firebase initialization error:", error);
-            this.showMessage("Firebase initialization failed: " + error.message, 'error');
+            this.showMessage("System error. Please refresh the page.", 'error');
         }
     }
 
@@ -48,7 +47,7 @@ class OrderSystem {
             orderForm.addEventListener('submit', (e) => this.handleOrderSubmit(e));
             console.log("✅ Order form event listener added");
         } else {
-            console.error("❌ Order form not found");
+            console.error("❌ Order form not found - check your HTML ID");
         }
 
         // Test button
@@ -76,7 +75,7 @@ class OrderSystem {
 
             // Collect order data
             const orderData = this.collectOrderData();
-            console.log("📊 Order data:", orderData);
+            console.log("📊 Order data collected:", orderData);
 
             // Validate required fields
             if (!orderData.customerName || !orderData.customerEmail || !orderData.customerPhone) {
@@ -84,11 +83,12 @@ class OrderSystem {
             }
 
             // Save to Firebase
+            console.log("💾 Saving to Firebase...");
             const docRef = await this.db.collection('orders').add(orderData);
             console.log("✅ Order saved with ID:", docRef.id);
             
             // Show success message
-            this.showMessage(`✅ Order placed successfully! Order ID: ${docRef.id.substring(0, 8)}`, 'success');
+            this.showMessage(`✅ Order placed successfully! Your order ID: ${docRef.id.substring(0, 8)}`, 'success');
             
             // Reset form
             e.target.reset();
@@ -119,7 +119,7 @@ class OrderSystem {
                     specialInstructions: "Extra spicy"
                 },
                 {
-                    name: "Chicken",
+                    name: "Grilled Chicken",
                     price: 15.00,
                     quantity: 2,
                     specialInstructions: ""
@@ -133,10 +133,7 @@ class OrderSystem {
             paymentMethod: 'cash',
             notes: this.getValue('orderNotes') || '',
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            
-            // Additional fields for tracking
-            source: 'website',
-            orderType: 'delivery' // or 'pickup'
+            source: 'website'
         };
 
         return orderData;
@@ -144,67 +141,36 @@ class OrderSystem {
 
     getValue(elementId) {
         const element = document.getElementById(elementId);
-        return element ? element.value : null;
+        return element ? element.value.trim() : null;
     }
 
     async testOrderSave() {
         console.log("🧪 Testing order save...");
         
-        if (!this.initialized) {
-            this.showMessage("Firebase not initialized", 'error');
-            return;
-        }
-
         const testOrder = {
             customerName: "Test Customer " + new Date().toLocaleTimeString(),
             customerEmail: "test@example.com",
             customerPhone: "1234567890",
-            customerAddress: "123 Test Street",
-            
             items: [
-                { name: "Test Pizza", price: 12.99, quantity: 1, specialInstructions: "Test order" },
-                { name: "Test Drink", price: 2.99, quantity: 2, specialInstructions: "" }
+                { name: "Test Pizza", price: 12.99, quantity: 1, specialInstructions: "Test order" }
             ],
-            
-            subtotal: 18.97,
-            tax: 1.52,
-            total: 20.49,
+            subtotal: 12.99,
+            tax: 1.04,
+            total: 14.03,
             status: "pending",
             paymentMethod: "cash",
-            notes: "This is a test order from the test button",
+            notes: "Test order from button",
             timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-            source: 'website-test',
-            orderType: 'delivery'
+            source: 'website-test'
         };
 
         try {
             const docRef = await this.db.collection('orders').add(testOrder);
             console.log("✅ Test order saved! ID:", docRef.id);
             this.showMessage(`✅ Test order saved! ID: ${docRef.id.substring(0, 8)}`, 'success');
-            
-            // Check if order appears in Firebase console
-            setTimeout(() => {
-                this.checkOrderInFirebase(docRef.id);
-            }, 2000);
-            
         } catch (error) {
             console.error("❌ Error saving test order:", error);
             this.showMessage("❌ Test failed: " + error.message, 'error');
-        }
-    }
-
-    async checkOrderInFirebase(orderId) {
-        try {
-            const doc = await this.db.collection('orders').doc(orderId).get();
-            if (doc.exists) {
-                console.log("✅ Order verified in Firebase:", doc.data());
-                this.showMessage("✅ Order verified in Firebase database!", 'success');
-            } else {
-                console.error("❌ Order not found in Firebase");
-                this.showMessage("❌ Order not found in database", 'error');
-            }
-        } catch (error) {
-            console.error("Error checking order:", error);
         }
     }
 
