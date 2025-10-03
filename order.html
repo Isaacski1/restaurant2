@@ -23,7 +23,6 @@
   <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 
   <link href="https://fonts.googleapis.com/css?family=Montserrat:400,700" rel="stylesheet" />
   <!--===============================================================================================-->
@@ -535,9 +534,12 @@
   </section>
   <!-- Food Selection Categories End -->
 
-  <!-- Add this somewhere in your order.html -->
-  <div class="mt-4 p-3 border rounded bg-light">
-    <h5>Firebase Test</h5>
+  <!-- Firebase Test Section -->
+  <div class="container mt-4 p-3 border rounded bg-light">
+    <h5>Firebase Order Test</h5>
+    <button onclick="testFirebaseSave()" class="btn btn-info btn-sm">
+      Test Firebase Order Save
+    </button>
     <button id="testFirebaseBtn" class="btn btn-warning btn-sm">
       Test Firebase Connection
     </button>
@@ -550,20 +552,36 @@
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
 
-
-
-
-
-  <!-- Firebase Configuration -->
-  <script src="js/firebase-config.js"></script>
-
+  <!-- Firebase Configuration and Payment Script -->
   <script>
+    // Firebase config
+    const firebaseConfig = {
+      apiKey: "AIzaSyDvpv148pehFCPMwuw1hDYPPnWA67EOHOU",
+      authDomain: "isaacski-restaurant.firebaseapp.com",
+      projectId: "isaacski-restaurant",
+      storageBucket: "isaacski-restaurant.firebasestorage.app",
+      messagingSenderId: "793597481997",
+      appId: "1:793597481997:web:fce9cb43ca442eee7b7144",
+      measurementId: "G-CNYCFT8N3F"
+    };
+
+    // Initialize Firebase
+    let db;
+    try {
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      db = firebase.firestore();
+      console.log("✅ Firebase initialized successfully in order page");
+    } catch (error) {
+      console.error("❌ Firebase initialization error:", error);
+    }
+
     // Test Firebase connection
     document.getElementById('testFirebaseBtn').addEventListener('click', function () {
       const testResult = document.getElementById('testResult');
 
       try {
-        // Test if Firebase is available
         if (typeof firebase === 'undefined') {
           testResult.innerHTML = '<span class="text-danger">❌ Firebase not loaded</span>';
           return;
@@ -574,14 +592,13 @@
           return;
         }
 
-        // Test Firestore write
         const testData = {
           test: true,
           message: "Firebase test successful",
           timestamp: new Date()
         };
 
-        firebase.firestore().collection('test').add(testData)
+        db.collection('test').add(testData)
           .then((docRef) => {
             testResult.innerHTML = '<span class="text-success">✅ Firebase working! Test document created.</span>';
             console.log("Test document ID:", docRef.id);
@@ -598,45 +615,13 @@
     });
   </script>
 
-  <!-- Add this to your order.html -->
-  <script>
-
-    // Test function to check if orders are saving
-    function testOrderSave() {
-      const testOrder = {
-        customerName: "Test Customer",
-        customerEmail: "test@example.com",
-        customerPhone: "1234567890",
-        items: [
-          { name: "Test Item", price: 10.99, quantity: 1 }
-        ],
-        total: 10.99,
-        status: "pending",
-        timestamp: firebase.firestore.FieldValue.serverTimestamp()
-      };
-
-      db.collection('orders').add(testOrder)
-        .then((docRef) => {
-          console.log("Test order saved with ID: ", docRef.id);
-          alert("Test order saved successfully! Check Firebase console.");
-        })
-        .catch((error) => {
-          console.error("Error saving test order: ", error);
-          alert("Error saving test order: " + error.message);
-        });
-    }
-
-    // Call this function to test
-    // testOrderSave();
-  </script>
-
   <script>
     // Initialize EmailJS
     (function () {
       emailjs.init("-WX6aDIktn3nAw81E");
     })();
 
-    // Total Cost Calculation (Keep your existing code)
+    // Total Cost Calculation
     function extractPrice(val) {
       if (!val) return 0;
       var match = val.match(/¢([\d.]+)/);
@@ -703,9 +688,16 @@
       do_total();
     });
 
-    // Save order to Firebase
+    // Save order to Firebase - FIXED VERSION
     async function saveOrderToFirebase(orderData, orderId, paymentReference) {
       try {
+        console.log("💾 Starting Firebase save for order:", orderId);
+
+        // Check if Firebase is initialized
+        if (!db) {
+          throw new Error("Firebase not initialized");
+        }
+
         const firebaseOrderData = {
           orderId: orderId,
           customerName: orderData.fullname,
@@ -728,24 +720,28 @@
           currency: 'GHS',
           paymentReference: paymentReference,
           paymentStatus: 'completed',
-          orderStatus: 'pending',
+          status: 'pending',
 
           // Timestamps
           timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-          orderDate: new Date().toISOString()
+          orderDate: new Date().toISOString(),
+          source: 'website-paystack'
         };
 
-        // Save to Firebase
+        console.log("📦 Order data prepared:", firebaseOrderData);
+
+        // Save to Firebase using set() with the orderId as document ID
         await db.collection('orders').doc(orderId).set(firebaseOrderData);
-        console.log('Order saved to Firebase successfully');
+        console.log('✅ Order saved to Firebase successfully');
         return true;
+
       } catch (error) {
-        console.error('Error saving order to Firebase:', error);
-        return false;
+        console.error('❌ Error saving order to Firebase:', error);
+        throw error;
       }
     }
 
-    // Paystack Payment with Firebase Integration
+    // Paystack Payment with Firebase Integration - FIXED VERSION
     document.getElementById("pay-now-btn").addEventListener("click", function () {
       const form = document.getElementById("paymentForm");
       const formData = new FormData(form);
@@ -779,7 +775,9 @@
       }
 
       // Generate order ID
-      const orderId = 'ORDER-' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      const orderId = 'ORDER-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+      console.log("🔄 Starting payment process for order:", orderId);
 
       const handler = PaystackPop.setup({
         key: "pk_test_daec5eba6470db795511d6c5b8b29469f938ea34",
@@ -807,9 +805,11 @@
           ]
         },
         callback: function (response) {
+          console.log("💰 Payment successful:", response);
           handlePaymentSuccess(response, data, orderId);
         },
         onClose: function () {
+          console.log("❌ Payment cancelled by user");
           alert("Payment was cancelled.");
         },
       });
@@ -819,23 +819,21 @@
 
     async function handlePaymentSuccess(response, data, orderId) {
       try {
-        // 1. Save to Firebase first
-        const firebaseSaved = await saveOrderToFirebase(data, orderId, response.reference);
+        console.log("🔄 Processing successful payment for order:", orderId);
 
-        if (!firebaseSaved) {
-          throw new Error('Failed to save order to database');
-        }
+        // 1. Save to Firebase first
+        console.log("💾 Saving to Firebase...");
+        await saveOrderToFirebase(data, orderId, response.reference);
+        console.log("✅ Firebase save completed");
 
         // 2. Send email using Email.js
+        console.log("📧 Sending email...");
         const templateParams = {
-          // Customer Information
           fullname: data.fullname,
           email: data.email,
           telephone: data.telephone,
           vendor_location: data.vendor_location,
           message: data.message,
-
-          // Food Selection
           main_dishes: data.main_dishes,
           protein: data.protein,
           protein2: data.protein2 || 'None',
@@ -843,17 +841,14 @@
           drinks: data.Drinks || 'None',
           packaging: data.Packaging,
           delivery: data.Delivery,
-
-          // Order & Payment Details
           total_cost: document.getElementById('total-cost').textContent,
           order_id: orderId,
           payment_reference: response.reference,
           timestamp: new Date().toLocaleString()
         };
 
-        // Send email via Email.js
         await emailjs.send('service_uvwuw6g', 'template_phvfhln', templateParams);
-        console.log('Email sent successfully via Email.js');
+        console.log('✅ Email sent successfully via Email.js');
 
         // 3. Format WhatsApp message
         const whatsappMessage = `New Order Payment Successful! 💰
@@ -880,17 +875,51 @@ Order Details:
 📝 Additional Notes: ${data.message || 'None'}`;
 
         const whatsappLink = `https://wa.me/233549175604?text=${encodeURIComponent(whatsappMessage)}`;
-        window.open(whatsappLink, "_blank");
 
-        alert("🎉 Order submitted successfully and payment completed! Order ID: " + orderId);
+        // Show success message
+        alert("🎉 Order submitted successfully and payment completed! Order ID: " + orderId + "\n\nWhatsApp notification will open next.");
+
+        // Reset form
         document.getElementById('paymentForm').reset();
         document.getElementById('total-cost').textContent = '¢0.00';
 
+        // Open WhatsApp after a short delay
+        setTimeout(() => {
+          window.open(whatsappLink, "_blank");
+        }, 1000);
+
       } catch (error) {
-        console.error("Error during order processing:", error);
-        alert("Payment was successful but there was an issue processing your order. Please contact us with your Order ID: " + orderId);
+        console.error("❌ Error during order processing:", error);
+        alert("Payment was successful but there was an issue processing your order. Please contact us with your Order ID: " + orderId + "\n\nError: " + error.message);
       }
     }
+
+    // Debug function to test Firebase directly
+    window.testFirebaseSave = async function () {
+      const testOrder = {
+        fullname: "Test Customer " + new Date().toLocaleTimeString(),
+        email: "test@example.com",
+        telephone: "1234567890",
+        vendor_location: "central-market",
+        message: "Test order from debug function",
+        main_dishes: "Jollof - ¢20.00",
+        protein: "Chicken - ¢7.00",
+        protein2: "None",
+        Accompaniment: "None",
+        Drinks: "None",
+        Packaging: "TakeAway Pack - ¢2.00",
+        Delivery: "Today - ¢6.50"
+      };
+
+      const testOrderId = 'TEST-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+
+      try {
+        await saveOrderToFirebase(testOrder, testOrderId, 'TEST-REF');
+        alert("✅ Test order saved successfully! ID: " + testOrderId);
+      } catch (error) {
+        alert("❌ Test failed: " + error.message);
+      }
+    };
   </script>
 
   <!-- Footer -->
@@ -1052,24 +1081,6 @@ Order Details:
     <i class="fa fa-whatsapp" aria-hidden="true"></i>
   </a>
 
-  <!-- In your order.html, add these scripts before closing </body> -->
-
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-  <script src="js/order-system.js"></script>
-
-  <!-- Your order system -->
-  <script src="js/order-system.js"></script>
-
-  <!-- Test button HTML (add this to your form) -->
-  <div class="mt-3">
-    <button type="button" id="testOrderBtn" class="btn btn-warning">
-      <i class="fas fa-vial"></i> Test Order Save
-    </button>
-    <small class="text-muted d-block">Click this to test if orders save to Firebase</small>
-  </div>
-
   <script data-cfasync="false" src="../../cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
   <script type="text/javascript" src="vendor/jquery/jquery-3.2.1.min.js"></script>
   <!--===============================================================================================-->
@@ -1101,7 +1112,6 @@ Order Details:
   <script src="js/whatsaap-api.js"></script>
   <script src="js/script.js"></script>
   <script src="js/email-template.js"></script>
-
 
   <script defer src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"
     integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="

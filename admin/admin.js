@@ -128,8 +128,8 @@ function loadTodayOrders() {
             snapshot.forEach(doc => {
                 totalOrders++;
                 const orderData = doc.data();
-                totalRevenue += orderData.total || orderData.totalAmount || 0;
-                if (orderData.status === 'pending' || orderData.orderStatus === 'pending') {
+                totalRevenue += orderData.totalAmount || 0;
+                if (orderData.status === 'pending') {
                     pendingOrders++;
                 }
             });
@@ -185,11 +185,11 @@ function loadRecentOrders() {
                 const order = doc.data();
                 const row = `
                     <tr>
-                        <td>${doc.id.substring(0, 8)}</td>
+                        <td>${order.orderId || doc.id.substring(0, 8)}</td>
                         <td>${order.customerName || 'N/A'}</td>
                         <td>${getOrderItemsCount(order)} items</td>
-                        <td>¢${(order.total || order.totalAmount || 0).toFixed(2)}</td>
-                        <td><span class="badge bg-${getStatusBadge(order.status || order.orderStatus)}">${order.status || order.orderStatus || 'pending'}</span></td>
+                        <td>¢${(order.totalAmount || 0).toFixed(2)}</td>
+                        <td><span class="badge bg-${getStatusBadge(order.status)}">${order.status || 'pending'}</span></td>
                         <td>${formatDate(order.timestamp)}</td>
                     </tr>
                 `;
@@ -200,7 +200,7 @@ function loadRecentOrders() {
         });
 }
 
-// In admin.js - Update the loadAllOrders function
+// Load all orders for orders section
 function loadAllOrders() {
     console.log("Loading all orders...");
     
@@ -229,7 +229,7 @@ function loadAllOrders() {
                 
                 const row = `
                     <tr>
-                        <td>${doc.id.substring(0, 8)}</td>
+                        <td>${order.orderId || doc.id.substring(0, 8)}</td>
                         <td>
                             <strong>${order.customerName || 'N/A'}</strong>
                         </td>
@@ -240,7 +240,7 @@ function loadAllOrders() {
                         <td>
                             ${getOrderItemsDisplay(order)}
                         </td>
-                        <td>¢${(order.total || 0).toFixed(2)}</td>
+                        <td>¢${(order.totalAmount || 0).toFixed(2)}</td>
                         <td>
                             <select class="form-select form-select-sm status-select" data-order-id="${doc.id}">
                                 <option value="pending" ${order.status === 'pending' ? 'selected' : ''}>Pending</option>
@@ -269,16 +269,6 @@ function loadAllOrders() {
         }, (error) => {
             console.error('Error loading all orders:', error);
         });
-}
-
-// Add this helper function
-function getOrderItemsDisplay(order) {
-    if (order.items && Array.isArray(order.items)) {
-        return order.items.map(item => 
-            `${item.name} x${item.quantity} - ¢${(item.price * item.quantity).toFixed(2)}`
-        ).join('<br>');
-    }
-    return 'No items listed';
 }
 
 // Load all reservations
@@ -389,21 +379,21 @@ function viewOrderDetails(orderId) {
             if (doc.exists) {
                 const order = doc.data();
                 const details = `
-                    <strong>Order ID:</strong> ${orderId}<br>
+                    <strong>Order ID:</strong> ${order.orderId || orderId}<br>
                     <strong>Customer:</strong> ${order.customerName}<br>
                     <strong>Email:</strong> ${order.customerEmail || 'N/A'}<br>
                     <strong>Phone:</strong> ${order.customerPhone || 'N/A'}<br>
-                    <strong>Address:</strong> ${order.customerAddress || 'N/A'}<br>
-                    <strong>Items:</strong><br>
-                    ${order.items ? order.items.map(item => 
-                        `- ${item.name} x${item.quantity} @ ¢${item.price} = ¢${(item.price * item.quantity).toFixed(2)}` +
-                        (item.specialInstructions ? ` (${item.specialInstructions})` : '')
-                    ).join('<br>') : 'No items'}<br>
-                    <strong>Subtotal:</strong> ¢${order.subtotal?.toFixed(2) || '0.00'}<br>
-                    <strong>Tax:</strong> ¢${order.tax?.toFixed(2) || '0.00'}<br>
-                    <strong>Total:</strong> ¢${order.total?.toFixed(2) || '0.00'}<br>
-                    <strong>Payment Method:</strong> ${order.paymentMethod || 'N/A'}<br>
-                    <strong>Notes:</strong> ${order.notes || 'None'}<br>
+                    <strong>Location:</strong> ${order.vendorLocation || 'N/A'}<br>
+                    <strong>Main Dish:</strong> ${order.mainDish || 'N/A'}<br>
+                    <strong>Protein:</strong> ${order.protein || 'N/A'}<br>
+                    <strong>Extra Protein:</strong> ${order.extraProtein || 'None'}<br>
+                    <strong>Accompaniment:</strong> ${order.accompaniment || 'None'}<br>
+                    <strong>Drinks:</strong> ${order.drinks || 'None'}<br>
+                    <strong>Packaging:</strong> ${order.packaging || 'N/A'}<br>
+                    <strong>Delivery:</strong> ${order.deliveryPeriod || 'N/A'}<br>
+                    <strong>Total:</strong> ¢${order.totalAmount?.toFixed(2) || '0.00'}<br>
+                    <strong>Payment Reference:</strong> ${order.paymentReference || 'N/A'}<br>
+                    <strong>Notes:</strong> ${order.additionalNotes || 'None'}<br>
                     <strong>Order Time:</strong> ${formatDate(order.timestamp)}
                 `;
                 
@@ -473,27 +463,44 @@ function formatDate(timestamp) {
 }
 
 function getOrderItemsCount(order) {
-    // Count items based on your order structure
-    if (order.items && Array.isArray(order.items)) {
-        return order.items.length;
-    }
-    return 1; // Default count
-}
-
-function getOrderItemsSummary(order) {
-    if (order.items && Array.isArray(order.items)) {
-        return order.items.map(item => `${item.name} (x${item.quantity})`).join('<br>');
-    }
-    return 'Order details';
+    let count = 0;
+    if (order.mainDish) count++;
+    if (order.protein) count++;
+    if (order.extraProtein && order.extraProtein !== 'None') count++;
+    if (order.accompaniment && order.accompaniment !== 'None') count++;
+    if (order.drinks && order.drinks !== 'None') count++;
+    return count;
 }
 
 function getOrderItemsDisplay(order) {
-    if (order.items && Array.isArray(order.items)) {
-        return order.items.map(item => 
-            `${item.name} x${item.quantity} - ¢${(item.price * item.quantity).toFixed(2)}`
-        ).join('<br>');
+    let items = [];
+    
+    // Add main dish
+    if (order.mainDish) {
+        items.push(order.mainDish.split(' - ')[0]);
     }
-    return 'No items';
+    
+    // Add protein
+    if (order.protein) {
+        items.push(order.protein.split(' - ')[0]);
+    }
+    
+    // Add extra protein if exists
+    if (order.extraProtein && order.extraProtein !== 'None') {
+        items.push(order.extraProtein.split(' - ')[0] + ' (Extra)');
+    }
+    
+    // Add accompaniment if exists
+    if (order.accompaniment && order.accompaniment !== 'None') {
+        items.push(order.accompaniment.split(' - ')[0]);
+    }
+    
+    // Add drinks if exists
+    if (order.drinks && order.drinks !== 'None') {
+        items.push(order.drinks.split(' - ')[0]);
+    }
+    
+    return items.length > 0 ? items.join('<br>') : 'No items listed';
 }
 
 // Debug function to check Firebase data
