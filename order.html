@@ -1117,6 +1117,70 @@ Order Details:
     integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ=="
     data-cf-beacon='{"rayId":"94b79e40ee6cee0a","version":"2025.5.0","serverTiming":{"name":{"cfExtPri":true,"cfEdge":true,"cfOrigin":true,"cfL4":true,"cfSpeedBrain":true,"cfCacheStatus":true}},"token":"cd0b4b3a733644fc843ef0b185f98241","b":1}'
     crossorigin="anonymous"></script>
+
+  <script>
+    // Debug script for order.html
+    console.log("=== ORDER PAGE DEBUG ===");
+
+    // Check if Firebase is loaded
+    console.log("Firebase available:", typeof firebase !== 'undefined');
+    console.log("Firebase apps:", firebase?.apps?.length || 0);
+
+    // Test Firebase directly
+    window.debugFirebase = async function () {
+      console.log("=== DEBUG: Testing Firebase ===");
+
+      try {
+        // Test config
+        const firebaseConfig = {
+          apiKey: "AIzaSyDvpv148pehFCPMwuw1hDYPPnWA67EOHOU",
+          authDomain: "isaacski-restaurant.firebaseapp.com",
+          projectId: "isaacski-restaurant",
+          storageBucket: "isaacski-restaurant.firebasestorage.app",
+          messagingSenderId: "793597481997",
+          appId: "1:793597481997:web:fce9cb43ca442eee7b7144",
+          measurementId: "G-CNYCFT8N3F"
+        };
+
+        // Initialize if not already
+        if (!firebase.apps.length) {
+          firebase.initializeApp(firebaseConfig);
+          console.log("✅ Firebase initialized in debug");
+        }
+
+        const db = firebase.firestore();
+
+        // Test write
+        const testData = {
+          debug: true,
+          message: "Debug test from order page",
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
+        const docRef = await db.collection('debug').add(testData);
+        console.log("✅ Debug test successful! ID:", docRef.id);
+        alert(`✅ Debug successful! Document: ${docRef.id}`);
+
+      } catch (error) {
+        console.error("❌ Debug error:", error);
+        alert(`❌ Debug failed: ${error.message}`);
+      }
+    };
+
+    // Add debug button to page
+    document.addEventListener('DOMContentLoaded', function () {
+      const debugBtn = document.createElement('button');
+      debugBtn.textContent = 'DEBUG: Test Firebase';
+      debugBtn.className = 'btn btn-warning';
+      debugBtn.style.position = 'fixed';
+      debugBtn.style.top = '10px';
+      debugBtn.style.right = '10px';
+      debugBtn.style.zIndex = '9999';
+      debugBtn.onclick = debugFirebase;
+
+      document.body.appendChild(debugBtn);
+    });
+  </script>
 </body>
 
 </html>

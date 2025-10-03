@@ -42,229 +42,283 @@
         .stat-card:hover {
             transform: translateY(-5px);
         }
+
+        .login-container {
+            max-width: 400px;
+            margin: 100px auto;
+            padding: 20px;
+        }
+
+        .status-badge {
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
-                <div class="position-sticky pt-3">
-                    <h4 class="text-white text-center mb-4">
-                        <i class="fas fa-utensils"></i> Restaurant Admin
-                    </h4>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active" href="#dashboard" data-section="dashboard">
-                                <i class="fas fa-tachometer-alt"></i> Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#orders" data-section="orders">
-                                <i class="fas fa-shopping-bag"></i> Orders
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="#reservations" data-section="reservations">
-                                <i class="fas fa-calendar-check"></i> Reservations
-                            </a>
-                        </li>
-                        <li class="nav-item mt-4">
-                            <button class="btn btn-outline-light btn-sm w-100" id="logoutBtn">
-                                <i class="fas fa-sign-out-alt"></i> Logout
+    <!-- Login Section -->
+    <div id="loginSection" class="container">
+        <div class="login-container">
+            <div class="card shadow">
+                <div class="card-body">
+                    <h3 class="text-center mb-4">
+                        <i class="fas fa-utensils"></i> Admin Login
+                    </h3>
+                    <form id="loginForm">
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="password" class="form-label">Password</label>
+                            <input type="password" class="form-control" id="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </button>
+                    </form>
+                    <div id="loginError" class="alert alert-danger mt-3" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Dashboard (Hidden until authenticated) -->
+    <div id="dashboardSection" style="display: none;">
+        <div class="container-fluid">
+            <div class="row">
+                <!-- Sidebar -->
+                <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse bg-dark">
+                    <div class="position-sticky pt-3">
+                        <h4 class="text-white text-center mb-4">
+                            <i class="fas fa-utensils"></i> Restaurant Admin
+                        </h4>
+                        <div class="text-white text-center mb-3">
+                            <small>Welcome, <span id="userEmail"></span></small>
+                        </div>
+                        <ul class="nav flex-column">
+                            <li class="nav-item">
+                                <a class="nav-link active" href="#dashboard" data-section="dashboard">
+                                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#orders" data-section="orders">
+                                    <i class="fas fa-shopping-bag"></i> Orders
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="#reservations" data-section="reservations">
+                                    <i class="fas fa-calendar-check"></i> Reservations
+                                </a>
+                            </li>
+                            <li class="nav-item mt-4">
+                                <button class="btn btn-outline-light btn-sm w-100" id="logoutBtn">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </li>
+                        </ul>
+                    </div>
+                </nav>
+
+                <!-- Main Content -->
+                <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                    <!-- Dashboard Section -->
+                    <div id="dashboard" class="content-section">
+                        <div
+                            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                            <h1 class="h2">Dashboard Overview</h1>
+                            <div class="text-muted" id="currentTime"></div>
+                        </div>
+
+                        <!-- Stats Cards -->
+                        <div class="row">
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card border-left-primary shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                                    Today's Orders</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayOrders">0
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card border-left-success shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                                    Today's Revenue</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayRevenue">
+                                                    ¢0.00
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card border-left-warning shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                                    Today's Reservations</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800"
+                                                    id="todayReservations">0
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-calendar fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-xl-3 col-md-6 mb-4">
+                                <div class="card stat-card border-left-info shadow h-100 py-2">
+                                    <div class="card-body">
+                                        <div class="row no-gutters align-items-center">
+                                            <div class="col mr-2">
+                                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                                    Pending Orders</div>
+                                                <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendingOrders">0
+                                                </div>
+                                            </div>
+                                            <div class="col-auto">
+                                                <i class="fas fa-clock fa-2x text-gray-300"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Activity -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div class="card shadow mb-4">
+                                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                                        <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
+                                        <button class="btn btn-sm btn-outline-primary" id="refreshOrders">
+                                            <i class="fas fa-sync-alt"></i> Refresh
+                                        </button>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-bordered" id="recentOrdersTable">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Order ID</th>
+                                                        <th>Customer</th>
+                                                        <th>Items</th>
+                                                        <th>Total</th>
+                                                        <th>Status</th>
+                                                        <th>Date</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Orders will be populated here -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Orders Section -->
+                    <div id="orders" class="content-section" style="display: none;">
+                        <div
+                            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                            <h1 class="h2">Order Management</h1>
+                            <button class="btn btn-primary" id="refreshAllOrders">
+                                <i class="fas fa-sync-alt"></i> Refresh Orders
                             </button>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
-
-            <!-- Main Content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Dashboard Section -->
-                <div id="dashboard" class="content-section">
-                    <div
-                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2">Dashboard Overview</h1>
-                        <div class="text-muted" id="currentTime"></div>
-                    </div>
-
-                    <!-- Stats Cards -->
-                    <div class="row">
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card stat-card border-left-primary shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
-                                                Today's Orders</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayOrders">0</div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </div>
 
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card stat-card border-left-success shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
-                                                Today's Revenue</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayRevenue">¢0.00
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">All Orders</h6>
                             </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card stat-card border-left-warning shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
-                                                Today's Reservations</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="todayReservations">0
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-calendar fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-xl-3 col-md-6 mb-4">
-                            <div class="card stat-card border-left-info shadow h-100 py-2">
-                                <div class="card-body">
-                                    <div class="row no-gutters align-items-center">
-                                        <div class="col mr-2">
-                                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
-                                                Pending Orders</div>
-                                            <div class="h5 mb-0 font-weight-bold text-gray-800" id="pendingOrders">0
-                                            </div>
-                                        </div>
-                                        <div class="col-auto">
-                                            <i class="fas fa-clock fa-2x text-gray-300"></i>
-                                        </div>
-                                    </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="ordersTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Order ID</th>
+                                                <th>Customer</th>
+                                                <th>Contact</th>
+                                                <th>Items</th>
+                                                <th>Total</th>
+                                                <th>Status</th>
+                                                <th>Date</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Orders will be populated here -->
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Recent Activity -->
-                    <div class="row">
-                        <div class="col-12">
-                            <div class="card shadow mb-4">
-                                <div class="card-header py-3 d-flex justify-content-between align-items-center">
-                                    <h6 class="m-0 font-weight-bold text-primary">Recent Orders</h6>
-                                    <small class="text-muted">Real-time updates</small>
+                    <!-- Reservations Section -->
+                    <div id="reservations" class="content-section" style="display: none;">
+                        <div
+                            class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                            <h1 class="h2">Reservation Management</h1>
+                            <button class="btn btn-primary" id="refreshReservations">
+                                <i class="fas fa-sync-alt"></i> Refresh Reservations
+                            </button>
+                        </div>
+
+                        <div class="card shadow mb-4">
+                            <div class="card-header py-3">
+                                <h6 class="m-0 font-weight-bold text-primary">All Reservations</h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="table-responsive">
+                                    <table class="table table-bordered" id="reservationsTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Reservation ID</th>
+                                                <th>Customer</th>
+                                                <th>Contact</th>
+                                                <th>Date & Time</th>
+                                                <th>People</th>
+                                                <th>Status</th>
+                                                <th>Special Requests</th>
+                                                <th>Actions</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <!-- Reservations will be populated here -->
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="card-body">
-                                    <div class="table-responsive">
-                                        <table class="table table-bordered" id="recentOrdersTable">
-                                            <thead>
-                                                <tr>
-                                                    <th>Order ID</th>
-                                                    <th>Customer</th>
-                                                    <th>Items</th>
-                                                    <th>Total</th>
-                                                    <th>Status</th>
-                                                    <th>Date</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                <!-- Orders will be populated here -->
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <!-- Orders Section -->
-                <div id="orders" class="content-section" style="display: none;">
-                    <div
-                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2">Order Management</h1>
-                    </div>
-
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">All Orders</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="ordersTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Order ID</th>
-                                            <th>Customer</th>
-                                            <th>Contact</th>
-                                            <th>Items</th>
-                                            <th>Total</th>
-                                            <th>Status</th>
-                                            <th>Date</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Orders will be populated here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reservations Section -->
-                <div id="reservations" class="content-section" style="display: none;">
-                    <div
-                        class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                        <h1 class="h2">Reservation Management</h1>
-                    </div>
-
-                    <div class="card shadow mb-4">
-                        <div class="card-header py-3">
-                            <h6 class="m-0 font-weight-bold text-primary">All Reservations</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="table-responsive">
-                                <table class="table table-bordered" id="reservationsTable">
-                                    <thead>
-                                        <tr>
-                                            <th>Reservation ID</th>
-                                            <th>Customer</th>
-                                            <th>Contact</th>
-                                            <th>Date & Time</th>
-                                            <th>People</th>
-                                            <th>Status</th>
-                                            <th>Special Requests</th>
-                                            <th>Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <!-- Reservations will be populated here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </main>
+                </main>
+            </div>
         </div>
     </div>
 
@@ -291,10 +345,327 @@
         const auth = firebase.auth();
     </script>
 
-    <!-- Admin JavaScript -->
-    <script src="admin.js"></script>
-
     <script>
+        // DOM Elements
+        const loginSection = document.getElementById('loginSection');
+        const dashboardSection = document.getElementById('dashboardSection');
+        const loginForm = document.getElementById('loginForm');
+        const loginError = document.getElementById('loginError');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userEmail = document.getElementById('userEmail');
+
+        // Check auth state on load
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                // User is signed in
+                showDashboard(user);
+            } else {
+                // User is signed out
+                showLogin();
+            }
+        });
+
+        // Login form handler
+        loginForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            auth.signInWithEmailAndPassword(email, password)
+                .then((userCredential) => {
+                    // Signed in successfully
+                    loginError.style.display = 'none';
+                })
+                .catch((error) => {
+                    // Login failed
+                    loginError.textContent = error.message;
+                    loginError.style.display = 'block';
+                });
+        });
+
+        // Logout handler
+        logoutBtn.addEventListener('click', () => {
+            auth.signOut();
+        });
+
+        // Show login section
+        function showLogin() {
+            loginSection.style.display = 'block';
+            dashboardSection.style.display = 'none';
+        }
+
+        // Show dashboard section
+        function showDashboard(user) {
+            loginSection.style.display = 'none';
+            dashboardSection.style.display = 'block';
+            userEmail.textContent = user.email;
+
+            // Load data now that we're authenticated
+            loadDashboardData();
+        }
+
+        // Load dashboard data
+        function loadDashboardData() {
+            loadOrders();
+            loadReservations();
+            setupRealTimeListeners();
+        }
+
+        // Load orders from Firestore
+        function loadOrders() {
+            db.collection('orders').orderBy('timestamp', 'desc').get()
+                .then((querySnapshot) => {
+                    const ordersTable = document.querySelector('#ordersTable tbody');
+                    const recentOrdersTable = document.querySelector('#recentOrdersTable tbody');
+                    ordersTable.innerHTML = '';
+                    recentOrdersTable.innerHTML = '';
+
+                    let todayOrders = 0;
+                    let todayRevenue = 0;
+                    let pendingOrders = 0;
+                    const today = new Date().toDateString();
+
+                    querySnapshot.forEach((doc) => {
+                        const order = doc.data();
+                        const orderDate = order.timestamp?.toDate()?.toDateString();
+
+                        // Calculate stats
+                        if (orderDate === today) {
+                            todayOrders++;
+                            todayRevenue += order.totalAmount || 0;
+                        }
+                        if (order.status === 'pending') {
+                            pendingOrders++;
+                        }
+
+                        // Create table row
+                        const row = createOrderRow(doc.id, order);
+                        ordersTable.appendChild(row.cloneNode(true));
+
+                        // Add to recent orders (first 5)
+                        if (recentOrdersTable.children.length < 5) {
+                            recentOrdersTable.appendChild(row);
+                        }
+                    });
+
+                    // Update stats
+                    document.getElementById('todayOrders').textContent = todayOrders;
+                    document.getElementById('todayRevenue').textContent = `¢${todayRevenue.toFixed(2)}`;
+                    document.getElementById('pendingOrders').textContent = pendingOrders;
+                })
+                .catch((error) => {
+                    console.error('Error loading orders:', error);
+                    alert('Error loading orders: ' + error.message);
+                });
+        }
+
+        // Load reservations from Firestore
+        function loadReservations() {
+            db.collection('reservations').orderBy('timestamp', 'desc').get()
+                .then((querySnapshot) => {
+                    const reservationsTable = document.querySelector('#reservationsTable tbody');
+                    reservationsTable.innerHTML = '';
+
+                    let todayReservations = 0;
+                    const today = new Date().toDateString();
+
+                    querySnapshot.forEach((doc) => {
+                        const reservation = doc.data();
+                        const reservationDate = reservation.timestamp?.toDate()?.toDateString();
+
+                        if (reservationDate === today) {
+                            todayReservations++;
+                        }
+
+                        const row = createReservationRow(doc.id, reservation);
+                        reservationsTable.appendChild(row);
+                    });
+
+                    document.getElementById('todayReservations').textContent = todayReservations;
+                })
+                .catch((error) => {
+                    console.error('Error loading reservations:', error);
+                    alert('Error loading reservations: ' + error.message);
+                });
+        }
+
+        // Create order table row
+        function createOrderRow(orderId, order) {
+            const row = document.createElement('tr');
+            const orderDate = order.timestamp?.toDate()?.toLocaleString() || 'N/A';
+
+            row.innerHTML = `
+                <td>${orderId.substring(0, 8)}...</td>
+                <td>${order.customerName || 'N/A'}</td>
+                <td>${order.customerPhone || 'N/A'}<br>${order.customerEmail || ''}</td>
+                <td>${order.mainJoin || ''} ${order.protein ? '+ ' + order.protein : ''}</td>
+                <td>¢${order.totalAmount || '0.00'}</td>
+                <td>
+                    <span class="badge status-badge ${getStatusBadgeClass(order.status)}" 
+                          data-order-id="${orderId}" data-current-status="${order.status}">
+                        ${order.status || 'pending'}
+                    </span>
+                </td>
+                <td>${orderDate}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-primary" onclick="updateOrderStatus('${orderId}', 'completed')">
+                        Complete
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteOrder('${orderId}')">
+                        Delete
+                    </button>
+                </td>
+            `;
+
+            return row;
+        }
+
+        // Create reservation table row
+        function createReservationRow(reservationId, reservation) {
+            const row = document.createElement('tr');
+            const reservationDate = reservation.timestamp?.toDate()?.toLocaleString() || 'N/A';
+
+            row.innerHTML = `
+                <td>${reservationId.substring(0, 8)}...</td>
+                <td>${reservation.customerName || 'N/A'}</td>
+                <td>${reservation.customerPhone || 'N/A'}<br>${reservation.customerEmail || ''}</td>
+                <td>${reservationDate}</td>
+                <td>${reservation.numberOfPeople || 'N/A'}</td>
+                <td>
+                    <span class="badge ${getStatusBadgeClass(reservation.status)}">
+                        ${reservation.status || 'pending'}
+                    </span>
+                </td>
+                <td>${reservation.specialRequests || 'None'}</td>
+                <td>
+                    <button class="btn btn-sm btn-outline-success" onclick="updateReservationStatus('${reservationId}', 'confirmed')">
+                        Confirm
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger mt-1" onclick="deleteReservation('${reservationId}')">
+                        Delete
+                    </button>
+                </td>
+            `;
+
+            return row;
+        }
+
+        // Get Bootstrap badge class based on status
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'completed':
+                case 'confirmed':
+                    return 'bg-success';
+                case 'pending':
+                    return 'bg-warning';
+                case 'cancelled':
+                    return 'bg-danger';
+                default:
+                    return 'bg-secondary';
+            }
+        }
+
+        // Update order status
+        function updateOrderStatus(orderId, newStatus) {
+            db.collection('orders').doc(orderId).update({
+                status: newStatus
+            })
+                .then(() => {
+                    alert('Order status updated successfully!');
+                    loadOrders(); // Refresh the data
+                })
+                .catch((error) => {
+                    console.error('Error updating order:', error);
+                    alert('Error updating order: ' + error.message);
+                });
+        }
+
+        // Update reservation status
+        function updateReservationStatus(reservationId, newStatus) {
+            db.collection('reservations').doc(reservationId).update({
+                status: newStatus
+            })
+                .then(() => {
+                    alert('Reservation status updated successfully!');
+                    loadReservations(); // Refresh the data
+                })
+                .catch((error) => {
+                    console.error('Error updating reservation:', error);
+                    alert('Error updating reservation: ' + error.message);
+                });
+        }
+
+        // Delete order
+        function deleteOrder(orderId) {
+            if (confirm('Are you sure you want to delete this order?')) {
+                db.collection('orders').doc(orderId).delete()
+                    .then(() => {
+                        alert('Order deleted successfully!');
+                        loadOrders(); // Refresh the data
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting order:', error);
+                        alert('Error deleting order: ' + error.message);
+                    });
+            }
+        }
+
+        // Delete reservation
+        function deleteReservation(reservationId) {
+            if (confirm('Are you sure you want to delete this reservation?')) {
+                db.collection('reservations').doc(reservationId).delete()
+                    .then(() => {
+                        alert('Reservation deleted successfully!');
+                        loadReservations(); // Refresh the data
+                    })
+                    .catch((error) => {
+                        console.error('Error deleting reservation:', error);
+                        alert('Error deleting reservation: ' + error.message);
+                    });
+            }
+        }
+
+        // Setup real-time listeners
+        function setupRealTimeListeners() {
+            // Real-time orders listener
+            db.collection('orders').orderBy('timestamp', 'desc')
+                .onSnapshot((snapshot) => {
+                    loadOrders(); // Reload when orders change
+                });
+
+            // Real-time reservations listener
+            db.collection('reservations').orderBy('timestamp', 'desc')
+                .onSnapshot((snapshot) => {
+                    loadReservations(); // Reload when reservations change
+                });
+        }
+
+        // Refresh buttons
+        document.getElementById('refreshOrders')?.addEventListener('click', loadOrders);
+        document.getElementById('refreshAllOrders')?.addEventListener('click', loadOrders);
+        document.getElementById('refreshReservations')?.addEventListener('click', loadReservations);
+
+        // Navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const section = link.getAttribute('data-section');
+
+                // Update active nav link
+                document.querySelectorAll('.nav-link').forEach(navLink => {
+                    navLink.classList.remove('active');
+                });
+                link.classList.add('active');
+
+                // Show selected section
+                document.querySelectorAll('.content-section').forEach(content => {
+                    content.style.display = 'none';
+                });
+                document.getElementById(section).style.display = 'block';
+            });
+        });
+
         // Update current time
         function updateTime() {
             document.getElementById('currentTime').textContent = new Date().toLocaleString();
